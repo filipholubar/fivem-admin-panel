@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prism Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <!-- AUTH -->
+    <section class="auth-screen hidden" id="authScreen">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Prism<span>.</span></h1>
+                <p>Přihlas se nebo si vytvoř účet</p>
+            </div>
+
+            <div class="auth-tabs">
+                <button type="button" class="auth-tab active" id="loginTab">Přihlášení</button>
+                <button type="button" class="auth-tab" id="registerTab">Registrace</button>
+            </div>
+
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="loginEmail">E-mail</label>
+                    <input type="email" id="loginEmail" autocomplete="email" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Heslo</label>
+                    <input type="password" id="loginPassword" autocomplete="current-password" required />
+                </div>
+
+                <button type="submit" class="primary-btn full-btn">Přihlásit se</button>
+            </form>
+
+            <form id="registerForm" class="auth-form hidden">
+                <div class="form-group">
+                    <label for="registerEmail">E-mail</label>
+                    <input type="email" id="registerEmail" autocomplete="email" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="registerPassword">Heslo</label>
+                    <input type="password" id="registerPassword" autocomplete="new-password" required />
+                </div>
+
+                <button type="submit" class="primary-btn full-btn">Vytvořit účet</button>
+            </form>
+
+            <div class="auth-divider">
+                <span>nebo</span>
+            </div>
+
+            <button type="button" class="google-btn" id="googleLoginBtn">
+                Pokračovat přes Google
+            </button>
+        </div>
+    </section>
+
+    <!-- APP -->
+    <div class="dashboard-layout hidden" id="appShell">
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">Prism<span>.</span></div>
+
+            <nav class="sidebar-nav">
+                <button type="button" class="nav-item active" data-section="dashboard">Dashboard</button>
+                <button type="button" class="nav-item" data-section="users">Uživatelé</button>
+                <button type="button" class="nav-item" data-section="tickets">Tickety</button>
+                <button type="button" class="nav-item" data-section="analytics">Analytika</button>
+                <button type="button" class="nav-item" data-section="settings">Nastavení</button>
+            </nav>
+
+            <div class="sidebar-card">
+                <p>Aktivní projekt</p>
+                <h3>PRISM RP</h3>
+                <span>Dashboard napojený na Supabase</span>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <button type="button" class="menu-btn" id="menuBtn">☰</button>
+                    <p class="welcome">Vítej zpět</p>
+                    <h1 id="pageTitle">Admin Dashboard</h1>
+                </div>
+
+                <div class="topbar-right">
+                    <input type="text" id="searchInput" placeholder="Hledat uživatele..." class="search" />
+
+                    <div class="custom-select" data-select="statusFilter">
+                        <input type="hidden" id="statusFilter" value="all" />
+                        <button type="button" class="select-trigger">
+                            <span class="select-value">Všechny statusy</span>
+                            <span class="select-arrow">⌄</span>
+                        </button>
+                        <div class="select-menu">
+                            <button type="button" class="select-option active" data-value="all">Všechny statusy</button>
+                            <button type="button" class="select-option" data-value="Online">Online</button>
+                            <button type="button" class="select-option" data-value="Away">Away</button>
+                            <button type="button" class="select-option" data-value="Offline">Offline</button>
+                        </div>
+                    </div>
+
+                    <div class="profile-pill" id="userEmailPill">Uživatel</div>
+                    <button type="button" class="danger-btn" id="logoutBtn">Odhlásit</button>
+                </div>
+            </header>
+
+            <section class="section-view active" id="dashboardSection">
+                <section class="stats-grid">
+                    <div class="stat-card">
+                        <p>Celkem uživatelů</p>
+                        <h2 id="totalUsers">0</h2>
+                        <span>Všichni v systému</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <p>Online uživatelé</p>
+                        <h2 id="onlineUsers">0</h2>
+                        <span>Aktivní právě teď</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <p>Otevřené tickety</p>
+                        <h2 id="openTickets">0</h2>
+                        <span>Vyžadují řešení</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <p>Admin / Support</p>
+                        <h2 id="staffCount">0</h2>
+                        <span>Správa systému</span>
+                    </div>
+                </section>
+
+                <section class="content-grid">
+                    <div class="panel chart-panel">
+                        <div class="panel-header">
+                            <h3>Aktivita za posledních 7 dní</h3>
+                            <span>Demo analytika</span>
+                        </div>
+
+                        <div class="bars">
+                            <div class="bar-wrap"><div class="bar" style="height: 55%"></div><span>Po</span></div>
+                            <div class="bar-wrap"><div class="bar" style="height: 68%"></div><span>Út</span></div>
+                            <div class="bar-wrap"><div class="bar" style="height: 49%"></div><span>St</span></div>
+                            <div class="bar-wrap"><div class="bar" style="height: 81%"></div><span>Čt</span></div>
+                            <div class="bar-wrap"><div class="bar" style="height: 64%"></div><span>Pá</span></div>
+                            <div class="bar-wrap"><div class="bar" style="height: 90%"></div><span>So</span></div>
+                            <div class="bar-wrap"><div class="bar" style="height: 72%"></div><span>Ne</span></div>
+                        </div>
+                    </div>
+
+                    <div class="panel activity-panel">
+                        <div class="panel-header">
+                            <h3>Poslední aktivita</h3>
+                        </div>
+                        <ul class="activity-list" id="activityList"></ul>
+                    </div>
+                </section>
+            </section>
+
+            <section class="section-view" id="usersSection">
+                <section class="panel table-panel">
+                    <div class="panel-header panel-header-wrap">
+                        <div>
+                            <h3>Seznam uživatelů</h3>
+                            <span class="panel-subtext">Správa uživatelů v systému</span>
+                        </div>
+                        <button type="button" class="primary-btn" id="addUserBtn">Přidat uživatele</button>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Jméno</th>
+                                    <th>E-mail</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Aktivita</th>
+                                    <th>Akce</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+
+            <section class="section-view" id="ticketsSection">
+                <section class="panel table-panel">
+                    <div class="panel-header panel-header-wrap">
+                        <div>
+                            <h3>Ticket systém</h3>
+                            <span class="panel-subtext">Klikni na ticket a otevři konverzaci</span>
+                        </div>
+                        <button type="button" class="primary-btn" id="addTicketBtn">Přidat ticket</button>
+                    </div>
+
+                    <div class="ticket-list" id="ticketList"></div>
+                </section>
+            </section>
+
+            <section class="section-view" id="analyticsSection">
+                <section class="analytics-grid">
+                    <div class="panel info-card">
+                        <h3>Souhrn systému</h3>
+                        <p>Tenhle blok se dopočítává podle reálných dat v dashboardu.</p>
+                        <ul class="analytics-list">
+                            <li>Počet uživatelů: <strong id="analyticsUsers">0</strong></li>
+                            <li>Online: <strong id="analyticsOnline">0</strong></li>
+                            <li>Offline: <strong id="analyticsOffline">0</strong></li>
+                            <li>Tickety open: <strong id="analyticsTickets">0</strong></li>
+                        </ul>
+                    </div>
+
+                    <div class="panel info-card">
+                        <h3>Databáze</h3>
+                        <p>
+                            Dashboard je napojený na Supabase databázi, takže uživatelé, tickety i zprávy
+                            se ukládají reálně a zůstávají zachované i po obnovení stránky.
+                        </p>
+                    </div>
+                </section>
+            </section>
+
+            <section class="section-view" id="settingsSection">
+                <section class="panel settings-panel">
+                    <div class="panel-header">
+                        <h3>Nastavení dashboardu</h3>
+                    </div>
+
+                    <div class="settings-actions">
+                        <button type="button" class="primary-btn secondary-btn" id="seedDataBtn">Obnovit demo data</button>
+                        <button type="button" class="danger-btn" id="clearDataBtn">Smazat všechna data</button>
+                    </div>
+
+                    <p class="settings-note">
+                        Obnovení demo dat přepíše uživatele, tickety i zprávy na výchozí stav.
+                    </p>
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal-backdrop hidden" id="userModalBackdrop">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="userModalTitle">Přidat uživatele</h3>
+                <button type="button" class="icon-btn" id="closeUserModal">✕</button>
+            </div>
+
+            <form id="userForm" class="modal-form">
+                <input type="hidden" id="userId" />
+
+                <div class="form-group">
+                    <label for="userName">Jméno</label>
+                    <input type="text" id="userName" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Role</label>
+                    <div class="custom-select" data-select="userRole">
+                        <input type="hidden" id="userRole" value="Owner" />
+                        <button type="button" class="select-trigger">
+                            <span class="select-value">Owner</span>
+                            <span class="select-arrow">⌄</span>
+                        </button>
+                        <div class="select-menu">
+                            <button type="button" class="select-option active" data-value="Owner">Owner</button>
+                            <button type="button" class="select-option" data-value="Admin">Admin</button>
+                            <button type="button" class="select-option" data-value="Support">Support</button>
+                            <button type="button" class="select-option" data-value="Member">Member</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Status</label>
+                    <div class="custom-select" data-select="userStatus">
+                        <input type="hidden" id="userStatus" value="Online" />
+                        <button type="button" class="select-trigger">
+                            <span class="select-value">Online</span>
+                            <span class="select-arrow">⌄</span>
+                        </button>
+                        <div class="select-menu">
+                            <button type="button" class="select-option active" data-value="Online">Online</button>
+                            <button type="button" class="select-option" data-value="Away">Away</button>
+                            <button type="button" class="select-option" data-value="Offline">Offline</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="userActivity">Poslední aktivita</label>
+                    <input type="text" id="userActivity" placeholder="Např. Dnes / Před 2 h" required />
+                </div>
+
+                <button type="submit" class="primary-btn full-btn">Uložit uživatele</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-backdrop hidden" id="ticketModalBackdrop">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="ticketModalTitle">Přidat ticket</h3>
+                <button type="button" class="icon-btn" id="closeTicketModal">✕</button>
+            </div>
+
+            <form id="ticketForm" class="modal-form">
+                <input type="hidden" id="ticketId" />
+
+                <div class="form-group">
+                    <label for="ticketTitle">Název ticketu</label>
+                    <input type="text" id="ticketTitle" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="ticketOwner">Autor</label>
+                    <input type="text" id="ticketOwner" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Status</label>
+                    <div class="custom-select" data-select="ticketStatus">
+                        <input type="hidden" id="ticketStatus" value="Open" />
+                        <button type="button" class="select-trigger">
+                            <span class="select-value">Open</span>
+                            <span class="select-arrow">⌄</span>
+                        </button>
+                        <div class="select-menu">
+                            <button type="button" class="select-option active" data-value="Open">Open</button>
+                            <button type="button" class="select-option" data-value="Pending">Pending</button>
+                            <button type="button" class="select-option" data-value="Closed">Closed</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="primary-btn full-btn">Uložit ticket</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-backdrop hidden" id="ticketDetailBackdrop">
+        <div class="modal ticket-detail-modal">
+            <div class="modal-header">
+                <div>
+                    <h3 id="ticketDetailTitle">Detail ticketu</h3>
+                    <p class="ticket-detail-meta" id="ticketDetailMeta"></p>
+                </div>
+                <button type="button" class="icon-btn" id="closeTicketDetail">✕</button>
+            </div>
+
+            <div class="ticket-detail-top">
+                <div class="ticket-status-box">
+                    <span>Status</span>
+                    <div class="custom-select" data-select="ticketDetailStatus">
+                        <input type="hidden" id="ticketDetailStatus" value="Open" />
+                        <button type="button" class="select-trigger">
+                            <span class="select-value">Open</span>
+                            <span class="select-arrow">⌄</span>
+                        </button>
+                        <div class="select-menu">
+                            <button type="button" class="select-option active" data-value="Open">Open</button>
+                            <button type="button" class="select-option" data-value="Pending">Pending</button>
+                            <button type="button" class="select-option" data-value="Closed">Closed</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ticket-messages" id="ticketMessages"></div>
+
+            <form id="ticketReplyForm" class="ticket-reply-form">
+                <input type="text" id="ticketReplyAuthor" placeholder="Tvoje jméno" required />
+                <textarea id="ticketReplyMessage" rows="4" placeholder="Napiš odpověď do ticketu..." required></textarea>
+                <button type="submit" class="primary-btn full-btn">Odeslat zprávu</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+</html>
