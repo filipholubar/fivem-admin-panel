@@ -12,10 +12,34 @@
 <body>
     <!-- AUTH -->
     <section class="auth-screen hidden" id="authScreen">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h1>Prism<span>.</span></h1>
-                <p>Přihlas se nebo si vytvoř účet</p>
+    <div class="auth-shell">
+        <div class="auth-side">
+            <div class="auth-badge">Secure Admin Access</div>
+            <h1>Prism<span>.</span></h1>
+            <p class="auth-lead">
+                Moderní dashboard pro správu uživatelů, ticketů a aktivity na jednom místě.
+            </p>
+
+            <div class="auth-feature-list">
+                <div class="auth-feature">
+                    <div class="auth-feature-dot"></div>
+                    <span>Realtime tickety a zprávy</span>
+                </div>
+                <div class="auth-feature">
+                    <div class="auth-feature-dot"></div>
+                    <span>Supabase Auth + databáze</span>
+                </div>
+                <div class="auth-feature">
+                    <div class="auth-feature-dot"></div>
+                    <span>Role system a admin workflow</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-card premium-auth-card">
+            <div class="auth-card-top">
+                <h2>Vítej zpět</h2>
+                <p>Přihlas se do Prism Dashboardu</p>
             </div>
 
             <div class="auth-tabs">
@@ -24,66 +48,129 @@
             </div>
 
             <form id="loginForm" class="auth-form">
-                <div class="form-group">
+                <div class="premium-input">
                     <label for="loginEmail">E-mail</label>
-                    <input type="email" id="loginEmail" autocomplete="email" required />
+                    <div class="input-wrap">
+                        <span class="input-icon">✉</span>
+                        <input type="email" id="loginEmail" autocomplete="email" placeholder="např. filip@email.com" required />
+                    </div>
                 </div>
 
-                <div class="form-group">
+                <div class="premium-input">
                     <label for="loginPassword">Heslo</label>
-                    <input type="password" id="loginPassword" autocomplete="current-password" required />
+                    <div class="input-wrap">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="loginPassword" autocomplete="current-password" placeholder="Zadej heslo" required />
+                    </div>
                 </div>
 
-                <button type="submit" class="primary-btn full-btn">Přihlásit se</button>
+                <div class="auth-row">
+                    <span class="auth-row-muted">Bezpečné přihlášení</span>
+                    <button type="button" class="auth-link-btn" id="forgotPasswordBtn">Zapomněl jsi heslo?</button>
+                </div>
+
+                <button type="submit" class="primary-btn full-btn auth-main-btn">Přihlásit se</button>
             </form>
 
             <form id="registerForm" class="auth-form hidden">
-                <div class="form-group">
+                <div class="premium-input">
                     <label for="registerEmail">E-mail</label>
-                    <input type="email" id="registerEmail" autocomplete="email" required />
+                    <div class="input-wrap">
+                        <span class="input-icon">✉</span>
+                        <input type="email" id="registerEmail" autocomplete="email" placeholder="např. filip@email.com" required />
+                    </div>
                 </div>
 
-                <div class="form-group">
+                <div class="premium-input">
                     <label for="registerPassword">Heslo</label>
-                    <input type="password" id="registerPassword" autocomplete="new-password" required />
+                    <div class="input-wrap">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="registerPassword" autocomplete="new-password" placeholder="Vytvoř heslo" required />
+                    </div>
                 </div>
 
-                <button type="submit" class="primary-btn full-btn">Vytvořit účet</button>
+                <button type="submit" class="primary-btn full-btn auth-main-btn">Vytvořit účet</button>
+            </form>
+
+            <form id="forgotPasswordForm" class="auth-form hidden">
+                <p class="auth-reset-text">
+                    Zadej svůj e-mail a pošleme ti odkaz pro obnovení hesla.
+                </p>
+
+                <div class="premium-input">
+                    <label for="forgotEmail">E-mail</label>
+                    <div class="input-wrap">
+                        <span class="input-icon">✉</span>
+                        <input type="email" id="forgotEmail" autocomplete="email" placeholder="např. filip@email.com" required />
+                    </div>
+                </div>
+
+                <button type="submit" class="primary-btn full-btn auth-main-btn">Odeslat reset link</button>
+                <button type="button" class="secondary-btn full-btn" id="backToLoginBtn">Zpět na přihlášení</button>
+            </form>
+
+            <form id="resetPasswordForm" class="auth-form hidden">
+                <p class="auth-reset-text">
+                    Nastav si nové heslo.
+                </p>
+
+                <div class="premium-input">
+                    <label for="newPassword">Nové heslo</label>
+                    <div class="input-wrap">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="newPassword" placeholder="Nové heslo" required />
+                    </div>
+                </div>
+
+                <div class="premium-input">
+                    <label for="confirmPassword">Potvrdit heslo</label>
+                    <div class="input-wrap">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="confirmPassword" placeholder="Potvrdit heslo" required />
+                    </div>
+                </div>
+
+                <button type="submit" class="primary-btn full-btn auth-main-btn">Změnit heslo</button>
             </form>
 
             <div class="auth-divider">
-                <span>nebo</span>
+                <span>nebo pokračuj přes</span>
             </div>
 
             <button type="button" class="oauth-btn google-btn" id="googleLoginBtn">
-  <svg height="18" viewBox="0 0 48 48">
-    <path fill="#EA4335" d="M24 9.5c3.94 0 7.5 1.5 10.3 3.9l7.7-7.7C37.7 2.1 31.3 0 24 0 14.6 0 6.4 5.4 2.5 13.3l9 7C13.6 14 18.4 9.5 24 9.5z"/>
-    <path fill="#34A853" d="M46.5 24.5c0-1.7-.1-3.3-.4-4.8H24v9.1h12.7c-.5 2.9-2.2 5.4-4.6 7l7.2 5.6c4.2-3.9 6.7-9.6 6.7-16.9z"/>
-    <path fill="#4A90E2" d="M11.5 28.7c-1-2.9-1-6 0-8.9l-9-7C.9 16.4 0 20 0 24s.9 7.6 2.5 11.2l9-6.5z"/>
-    <path fill="#FBBC05" d="M24 48c7.3 0 13.5-2.4 18-6.6l-7.2-5.6c-2 1.4-4.6 2.3-10.8 2.3-5.6 0-10.4-3.8-12.1-8.9l-9 6.5C6.4 42.6 14.6 48 24 48z"/>
-  </svg>
-  Pokračovat přes Google
-</button>
+                <svg height="18" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.94 0 7.5 1.5 10.3 3.9l7.7-7.7C37.7 2.1 31.3 0 24 0 14.6 0 6.4 5.4 2.5 13.3l9 7C13.6 14 18.4 9.5 24 9.5z"/>
+                    <path fill="#34A853" d="M46.5 24.5c0-1.7-.1-3.3-.4-4.8H24v9.1h12.7c-.5 2.9-2.2 5.4-4.6 7l7.2 5.6c4.2-3.9 6.7-9.6 6.7-16.9z"/>
+                    <path fill="#4A90E2" d="M11.5 28.7c-1-2.9-1-6 0-8.9l-9-7C.9 16.4 0 20 0 24s.9 7.6 2.5 11.2l9-6.5z"/>
+                    <path fill="#FBBC05" d="M24 48c7.3 0 13.5-2.4 18-6.6l-7.2-5.6c-2 1.4-4.6 2.3-10.8 2.3-5.6 0-10.4-3.8-12.1-8.9l-9 6.5C6.4 42.6 14.6 48 24 48z"/>
+                </svg>
+                Pokračovat přes Google
+            </button>
 
             <button type="button" class="oauth-btn github-btn" id="githubLoginBtn">
-  <svg height="18" viewBox="0 0 16 16" fill="white">
-    <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 005.47 7.59c.4.07.55-.17.55-.38
-    0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
-    -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
-    .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95
-    0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12
-    0 0 .67-.21 2.2.82a7.48 7.48 0 012-.27c.68 0 1.36.09 2 .27
-    1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
-    .51.56.82 1.27.82 2.15
-    0 3.07-1.87 3.75-3.65 3.95
-    .29.25.54.73.54 1.48
-    0 1.07-.01 1.93-.01 2.2
-    0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/>
-  </svg>
-  Pokračovat přes GitHub
-</button>
+                <svg height="18" viewBox="0 0 16 16" fill="white">
+                    <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 005.47 7.59c.4.07.55-.17.55-.38
+                    0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+                    -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
+                    .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95
+                    0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12
+                    0 0 .67-.21 2.2.82a7.48 7.48 0 012-.27c.68 0 1.36.09 2 .27
+                    1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
+                    .51.56.82 1.27.82 2.15
+                    0 3.07-1.87 3.75-3.65 3.95
+                    .29.25.54.73.54 1.48
+                    0 1.07-.01 1.93-.01 2.2
+                    0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                </svg>
+                Pokračovat přes GitHub
+            </button>
+
+            <div class="auth-footer-text">
+                Prism Dashboard • Secure Login Panel
+            </div>
         </div>
-    </section>
+    </div>
+</section>
 
     <!-- APP -->
     <div class="dashboard-layout hidden" id="appShell">
@@ -130,8 +217,30 @@
                         </div>
                     </div>
 
-                    <div class="profile-pill" id="userEmailPill">Uživatel</div>
-                    <button type="button" class="danger-btn" id="logoutBtn">Odhlásit</button>
+                    <div class="profile-menu-wrap" id="profileMenuWrap">
+    <button type="button" class="profile-pill profile-pill-btn" id="userEmailPill">
+        Uživatel
+    </button>
+
+    <div class="profile-dropdown hidden" id="profileDropdown">
+        <div class="profile-dropdown-header">
+            <strong id="profileDropdownName">Uživatel</strong>
+            <span id="profileDropdownEmail">bez e-mailu</span>
+        </div>
+
+        <button type="button" class="profile-dropdown-btn" id="openUsersSectionBtn">
+            Otevřít uživatele
+        </button>
+
+        <button type="button" class="profile-dropdown-btn" id="openSettingsSectionBtn">
+            Nastavení
+        </button>
+
+        <button type="button" class="profile-dropdown-btn danger" id="logoutBtn">
+            Odhlásit se
+        </button>
+    </div>
+</div>
                 </div>
             </header>
 

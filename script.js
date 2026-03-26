@@ -82,6 +82,19 @@
   const menuBtn = document.getElementById("menuBtn");
   const sidebar = document.getElementById("sidebar");
   const githubLoginBtn = document.getElementById("githubLoginBtn");
+  const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
+  const resetPasswordForm = document.getElementById("resetPasswordForm"); 
+  const newPasswordInput = document.getElementById("newPassword");
+  const confirmPasswordInput = document.getElementById("confirmPassword");
+const profileMenuWrap = document.getElementById("profileMenuWrap");
+const profileDropdown = document.getElementById("profileDropdown");
+const profileDropdownName = document.getElementById("profileDropdownName");
+const profileDropdownEmail = document.getElementById("profileDropdownEmail");
+const openUsersSectionBtn = document.getElementById("openUsersSectionBtn");
+const openSettingsSectionBtn = document.getElementById("openSettingsSectionBtn");
+const forgotPasswordForm = document.getElementById("forgotPasswordForm");
+const forgotEmailInput = document.getElementById("forgotEmail");
+const backToLoginBtn = document.getElementById("backToLoginBtn");
 
   const navItems = document.querySelectorAll(".nav-item");
   const sections = {
@@ -145,26 +158,66 @@
     appShell?.classList.add("hidden");
   }
 
-  function showApp(user) {
-    currentUser = user;
+function showApp(user) {
+  currentUser = user;
 
-    authScreen?.classList.add("hidden");
-    appShell?.classList.remove("hidden");
+  authScreen?.classList.add("hidden");
+  appShell?.classList.remove("hidden");
 
-    if (userEmailPill) {
-      userEmailPill.textContent = user?.email || "User";
+  if (userEmailPill) {
+    userEmailPill.textContent =
+      currentUserProfile?.name ||
+      user?.user_metadata?.full_name ||
+      user?.email ||
+      "User";
+  }
+
+  updateProfileDropdown();
+}
+
+  function updateProfileDropdown() {
+  if (profileDropdownEmail) {
+    profileDropdownEmail.textContent = currentUser?.email || "bez e-mailu";
+  }
+
+  if (profileDropdownName) {
+    profileDropdownName.textContent =
+      currentUserProfile?.name ||
+      currentUser?.user_metadata?.full_name ||
+      currentUser?.email ||
+      "Uživatel";
+  }
+}
+
+function toggleProfileDropdown() {
+  profileDropdown?.classList.toggle("hidden");
+}
+
+function closeProfileDropdown() {
+  profileDropdown?.classList.add("hidden");
+}
+
+ function switchAuthTab(mode) {
+  const isLogin = mode === "login";
+
+  loginTab?.classList.toggle("active", isLogin);
+  registerTab?.classList.toggle("active", !isLogin);
+
+  loginForm?.classList.add("hidden");
+  registerForm?.classList.add("hidden");
+
+  if (typeof resetPasswordForm !== "undefined" && resetPasswordForm) {
+    resetPasswordForm.classList.add("hidden");
+  }
+
+  requestAnimationFrame(() => {
+    if (isLogin) {
+      loginForm?.classList.remove("hidden");
+    } else {
+      registerForm?.classList.remove("hidden");
     }
-  }
-
-  function switchAuthTab(mode) {
-    const isLogin = mode === "login";
-
-    loginTab?.classList.toggle("active", isLogin);
-    registerTab?.classList.toggle("active", !isLogin);
-
-    loginForm?.classList.toggle("hidden", !isLogin);
-    registerForm?.classList.toggle("hidden", isLogin);
-  }
+  });
+}
 
   async function handleLogin(email, password) {
     const { error } = await db.auth.signInWithPassword({ email, password });
@@ -215,6 +268,7 @@ async function handleLogout() {
   addTicketBtn.style.display = "";
 
   showAuth();
+  closeProfileDropdown();
 }
 
   function initializeCustomSelects() {
@@ -669,27 +723,29 @@ db.channel("realtime-messages")
     }
   }
 
-  async function addTicketMessage(ticketId, author, message) {
-    const { error } = await db.from("ticket_messages").insert({
-      ticket_id: ticketId,
-      author,
-      message,
-    });
+async function addTicketMessage(ticketId, author, message) {
+  const { error } = await db.from("ticket_messages").insert({
+    ticket_id: ticketId,
+    author,
+    message,
+  });
 
-    if (error) {
-      console.error(error);
-      showToast("Zpráva nešla odeslat", "error");
-      return false;
-    }
-
-    if ("Notification" in window && Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-
-    showToast("Zpráva byla odeslána");
-    await fetchRecentMessages();
-    return true;
+  if (error) {
+    console.error(error);
+    showToast("Zpráva nešla odeslat", "error");
+    return false;
   }
+
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification("Nová zpráva", {
+      body: message,
+    });
+  }
+
+  showToast("Zpráva byla odeslána");
+  await fetchRecentMessages();
+  return true;
+}
 
   function renderTicketMessages(messages) {
     if (!ticketMessages) return;
@@ -1178,6 +1234,17 @@ async function checkSession() {
     return;
   }
 
+  const hash = window.location.hash;
+
+  if (hash.includes("type=recovery")) {
+    loginForm.classList.add("hidden");
+    registerForm.classList.add("hidden");
+    resetPasswordForm.classList.remove("hidden");
+
+    showToast("Nastav si nové heslo");
+    return;
+  }
+
   if (data.session) {
     currentUser = data.session.user;
 
@@ -1234,13 +1301,212 @@ function applyPermissions() {
   }
 }
 
-if ("Notification" in window && Notification.permission === "granted") {
-  new Notification("Nová zpráva", {
-    body: message
+async function handleForgotPassword() {
+  const email = document.getElementById("loginEmail").value.trim();
+
+  if (!email) {
+    showToast("Nejdřív zadej e-mail.", "error");
+    return;
+  }
+
+  const { error } = await db.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname,
+  });
+
+  if (error) {
+    console.error(error);
+    showToast("Obnovení hesla selhalo.", "error");
+    return;
+  }
+
+  showToast("Na e-mail byl odeslán odkaz pro obnovení hesla.");
+}
+
+resetPasswordForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const password = newPasswordInput.value.trim();
+  const confirm = confirmPasswordInput.value.trim();
+
+  if (password.length < 6) {
+    showToast("Heslo musí mít alespoň 6 znaků", "error");
+    return;
+  }
+
+  if (password !== confirm) {
+    showToast("Hesla se neshodují", "error");
+    return;
+  }
+
+  const { error } = await db.auth.updateUser({
+    password: password,
+  });
+
+  if (error) {
+    console.error(error);
+    showToast("Změna hesla selhala", "error");
+    return;
+  }
+
+  showToast("Heslo bylo změněno");
+
+  resetPasswordForm.classList.add("hidden");
+  loginForm.classList.remove("hidden");
+
+  window.history.replaceState({}, document.title, window.location.pathname);
+});
+
+forgotPasswordForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = forgotEmailInput.value.trim();
+
+  const { error } = await db.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname,
+  });
+
+  if (error) {
+    console.error(error);
+    showToast("Nepodařilo se odeslat email", "error");
+    return;
+  }
+
+  showToast("Reset link byl odeslán na email");
+
+  forgotPasswordForm.reset();
+  forgotPasswordForm.classList.add("hidden");
+  loginForm.classList.remove("hidden");
+});
+
+backToLoginBtn?.addEventListener("click", () => {
+  forgotPasswordForm.classList.add("hidden");
+  loginForm.classList.remove("hidden");
+});
+
+function switchAuthTab(mode) {
+  const isLogin = mode === "login";
+
+  loginTab?.classList.toggle("active", isLogin);
+  registerTab?.classList.toggle("active", !isLogin);
+
+  loginForm?.classList.add("hidden");
+  registerForm?.classList.add("hidden");
+  forgotPasswordForm?.classList.add("hidden");
+  resetPasswordForm?.classList.add("hidden");
+
+  requestAnimationFrame(() => {
+    if (isLogin) {
+      loginForm?.classList.remove("hidden");
+    } else {
+      registerForm?.classList.remove("hidden");
+    }
   });
 }
+
+async function handleForgotPasswordRequest(email) {
+  const { error } = await db.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname,
+  });
+
+  if (error) {
+    console.error(error);
+    showToast("Nepodařilo se odeslat email", "error");
+    return false;
+  }
+
+  showToast("Reset link byl odeslán na email");
+  return true;
+}
+
+forgotPasswordBtn?.addEventListener("click", () => {
+  loginForm?.classList.add("hidden");
+  registerForm?.classList.add("hidden");
+  resetPasswordForm?.classList.add("hidden");
+  forgotPasswordForm?.classList.remove("hidden");
+
+  const loginEmailValue = document.getElementById("loginEmail")?.value?.trim();
+  if (loginEmailValue && forgotEmailInput) {
+    forgotEmailInput.value = loginEmailValue;
+  }
+});
+
+backToLoginBtn?.addEventListener("click", () => {
+  forgotPasswordForm?.classList.add("hidden");
+  resetPasswordForm?.classList.add("hidden");
+  registerForm?.classList.add("hidden");
+  loginForm?.classList.remove("hidden");
+});
+
+forgotPasswordForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = forgotEmailInput.value.trim();
+  if (!email) {
+    showToast("Zadej e-mail.", "error");
+    return;
+  }
+
+  const ok = await handleForgotPasswordRequest(email);
+  if (!ok) return;
+
+  forgotPasswordForm.reset();
+  forgotPasswordForm.classList.add("hidden");
+  loginForm.classList.remove("hidden");
+});
+
+resetPasswordForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const password = newPasswordInput.value.trim();
+  const confirm = confirmPasswordInput.value.trim();
+
+  if (password.length < 6) {
+    showToast("Heslo musí mít alespoň 6 znaků", "error");
+    return;
+  }
+
+  if (password !== confirm) {
+    showToast("Hesla se neshodují", "error");
+    return;
+  }
+
+  const { error } = await db.auth.updateUser({ password });
+
+  if (error) {
+    console.error(error);
+    showToast("Změna hesla selhala", "error");
+    return;
+  }
+
+  showToast("Heslo bylo změněno");
+
+  resetPasswordForm.reset();
+  resetPasswordForm.classList.add("hidden");
+  loginForm.classList.remove("hidden");
+  window.history.replaceState({}, document.title, window.location.pathname);
+});
 
   initializeCustomSelects();
   checkSession();
   githubLoginBtn?.addEventListener("click", handleGithubLogin);
+  userEmailPill?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  toggleProfileDropdown();
+});
+
+openUsersSectionBtn?.addEventListener("click", () => {
+  switchSection("users");
+  closeProfileDropdown();
+});
+
+openSettingsSectionBtn?.addEventListener("click", () => {
+  switchSection("settings");
+  closeProfileDropdown();
+});
+
+document.addEventListener("click", (e) => {
+  if (!profileMenuWrap?.contains(e.target)) {
+    closeProfileDropdown();
+  }
+});
 })();
