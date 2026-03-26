@@ -81,6 +81,7 @@
   const pageTitle = document.getElementById("pageTitle");
   const menuBtn = document.getElementById("menuBtn");
   const sidebar = document.getElementById("sidebar");
+  const githubLoginBtn = document.getElementById("githubLoginBtn");
 
   const navItems = document.querySelectorAll(".nav-item");
   const sections = {
@@ -1085,6 +1086,15 @@ db.channel("realtime-messages")
     });
   }
 
+  async function handleGithubLogin() {
+    await db.auth.signInWithOAuth({
+      provider: "github",
+      options: {
+      redirectTo: window.location.origin + window.location.pathname,
+      },
+    });
+  }
+
   loginTab?.addEventListener("click", () => switchAuthTab("login"));
   registerTab?.addEventListener("click", () => switchAuthTab("register"));
 
@@ -1232,4 +1242,5 @@ if ("Notification" in window && Notification.permission === "granted") {
 
   initializeCustomSelects();
   checkSession();
+  githubLoginBtn?.addEventListener("click", handleGithubLogin);
 })();
