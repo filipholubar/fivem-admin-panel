@@ -32,7 +32,6 @@
   const ticketList = document.getElementById("ticketList");
   const activityList = document.getElementById("activityList");
   const searchInput = document.getElementById("searchInput");
-  const statusFilter = document.getElementById("statusFilter");
 
   const totalUsers = document.getElementById("totalUsers");
   const onlineUsers = document.getElementById("onlineUsers");
@@ -190,15 +189,32 @@
     return true;
   }
 
-  async function handleLogout() {
-    await db.auth.signOut();
+async function handleLogout() {
+  await db.auth.signOut();
 
-    currentUser = null;
-    users = [];
-    tickets = [];
+  currentUser = null;
+  currentUserProfile = null;
+  unreadCount = 0;
+  users = [];
+  tickets = [];
+  openedTicketId = null;
+  editingUserId = null;
+  editingTicketId = null;
 
-    showAuth();
+  const ticketsBtn = document.querySelector('[data-section="tickets"]');
+  if (ticketsBtn) {
+    ticketsBtn.textContent = "Tickety";
   }
+
+  if (userEmailPill) {
+  userEmailPill.textContent = "Uživatel";
+  }
+
+  addUserBtn.style.display = "";
+  addTicketBtn.style.display = "";
+
+  showAuth();
+}
 
   function initializeCustomSelects() {
     const customSelects = document.querySelectorAll(".custom-select");
@@ -329,27 +345,42 @@
   }
 
   async function fetchRecentMessages(limit = 6) {
-    const { data, error } = await db
-      .from("ticket_messages")
-      .select("id, author, message, created_at, ticket_id")
-      .order("created_at", { ascending: false })
-      .limit(limit);
+  const { data, error } = await db
+    .from("ticket_messages")
+    .select("id, author, message, created_at, ticket_id")
+    .order("created_at", { ascending: false })
+    .limit(limit);
 
-    if (error) {
-      console.error(error);
-      if (activityList)
-        activityList.innerHTML = "<li>Nepodařilo se načíst aktivitu.</li>";
-      return;
+  if (error) {
+    console.error(error);
+    if (activityList) {
+      activityList.innerHTML = "<li>Nepodařilo se načíst aktivitu.</li>";
     }
-    unreadCount++;
-
-    const ticketsBtn = document.querySelector('[data-section="tickets"]');
-    if (ticketsBtn) {
-      ticketsBtn.textContent = `Tickety (${unreadCount})`;
-    }
-
-    renderActivities(data || []);
+    return;
   }
+
+  renderActivities(data || []);
+}
+
+db.channel("realtime-messages")
+  .on(
+    "postgres_changes",
+    { event: "*", schema: "public", table: "ticket_messages" },
+    () => {
+      if (openedTicketId) {
+        openTicketDetailPanelData(openedTicketId);
+      }
+
+      fetchRecentMessages();
+
+      unreadCount++;
+      const ticketsBtn = document.querySelector('[data-section="tickets"]');
+      if (ticketsBtn) {
+        ticketsBtn.textContent = `Tickety (${unreadCount})`;
+      }
+    }
+  )
+  .subscribe();
 
   async function fetchTicketMessages(ticketId) {
     const { data, error } = await db
@@ -391,7 +422,7 @@
     if (!filteredUsers.length) {
       usersTableBody.innerHTML = `
                 <tr>
-                    <td colspan="5">Žádní uživatelé nenalezeni.</td>
+                    <td colspan="6">Žádní uživatelé nenalezeni.</td>
                 </tr>
             `;
       return;
@@ -869,7 +900,7 @@
       owner_name: ticketOwnerInput.value.trim(),
       status: ticketStatusInput.value,
       priority: "Medium",
-      assigned_to: "Support",
+      assigned_to: currentUserProfile?.name || "Support",
     };
 
     let ok = false;
@@ -1151,15 +1182,20 @@ async function checkSession() {
   }
 }
 
-  db.channel("realtime-users")
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "users" },
-      () => {
-        fetchUsers();
-      },
-    )
-    .subscribe();
+db.channel("realtime-users")
+  .on(
+    "postgres_changes",
+    { event: "*", schema: "public", table: "users" },
+    async () => {
+      await fetchUsers();
+
+      if (currentUser) {
+        await loadCurrentUserProfile(currentUser);
+        applyPermissions();
+      }
+    }
+  )
+  .subscribe();
 
   db.channel("realtime-tickets")
     .on(
@@ -1171,36 +1207,28 @@ async function checkSession() {
     )
     .subscribe();
 
-  db.channel("realtime-messages")
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "ticket_messages" },
-      () => {
-        if (openedTicketId) {
-          openTicketDetailPanelData(openedTicketId);
-        }
-        fetchRecentMessages();
-      },
-    )
-    .subscribe();
+function applyPermissions() {
+  if (!currentUserProfile) return;
 
-  function applyPermissions() {
-    if (!currentUserProfile) return;
+  addUserBtn.style.display = "";
+  addTicketBtn.style.display = "";
 
-    const role = currentUserProfile.role;
+  const role = currentUserProfile.role;
 
-    if (role !== "Owner") {
-      addUserBtn.style.display = "none";
-    }
-
-    if (!["Owner", "Admin"].includes(role)) {
-      addTicketBtn.style.display = "none";
-    }
+  if (role !== "Owner") {
+    addUserBtn.style.display = "none";
   }
 
-  if ("Notification" in window && Notification.permission !== "granted") {
-    Notification.requestPermission();
+  if (!["Owner", "Admin"].includes(role)) {
+    addTicketBtn.style.display = "none";
   }
+}
+
+if ("Notification" in window && Notification.permission === "granted") {
+  new Notification("Nová zpráva", {
+    body: message
+  });
+}
 
   initializeCustomSelects();
   checkSession();
