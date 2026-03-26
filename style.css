@@ -24,7 +24,9 @@
 
 body {
     background:
-        radial-gradient(circle at top left, rgba(50, 200, 255, 0.12), transparent 24%),
+        radial-gradient(circle at top left,
+            rgba(50, 200, 255, 0.12),
+            transparent 24%),
         linear-gradient(180deg, #030813, var(--bg));
     color: var(--text);
     min-height: 100vh;
@@ -100,10 +102,11 @@ textarea {
         opacity: 0;
         transform: translateY(18px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
-        }
+    }
 }
 
 .auth-side {
@@ -217,10 +220,11 @@ textarea {
         opacity: 0;
         transform: translateY(10px) scale(0.985);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
-        }
+    }
 }
 
 .premium-input {
@@ -247,8 +251,9 @@ textarea {
 
 .input-wrap:focus-within {
     border-color: rgba(50, 200, 255, 0.35);
-    box-shadow: 0 0 0 1px rgba(50, 200, 255, 0.12),
-                0 0 22px rgba(50, 200, 255, 0.08);
+    box-shadow:
+        0 0 0 1px rgba(50, 200, 255, 0.12),
+        0 0 22px rgba(50, 200, 255, 0.08);
 }
 
 .input-icon {
@@ -342,8 +347,8 @@ textarea {
     gap: 10px;
     transition: all 0.2s ease;
     box-shadow:
-        0 0 0 1px rgba(255,255,255,0.04),
-        0 0 14px rgba(255,255,255,0.06);
+        0 0 0 1px rgba(255, 255, 255, 0.04),
+        0 0 14px rgba(255, 255, 255, 0.06);
 }
 
 .oauth-btn svg {
@@ -362,17 +367,17 @@ textarea {
 
 .google-btn:hover {
     box-shadow:
-        0 0 0 1px rgba(255,255,255,0.08),
-        0 0 18px rgba(66,133,244,0.22),
-        0 0 28px rgba(234,67,53,0.14),
-        0 0 38px rgba(52,168,83,0.08);
+        0 0 0 1px rgba(255, 255, 255, 0.08),
+        0 0 18px rgba(66, 133, 244, 0.22),
+        0 0 28px rgba(234, 67, 53, 0.14),
+        0 0 38px rgba(52, 168, 83, 0.08);
 }
 
 .github-btn:hover {
     box-shadow:
-        0 0 0 1px rgba(255,255,255,0.08),
-        0 0 18px rgba(255,255,255,0.10),
-        0 0 32px rgba(255,255,255,0.05);
+        0 0 0 1px rgba(255, 255, 255, 0.08),
+        0 0 18px rgba(255, 255, 255, 0.1),
+        0 0 32px rgba(255, 255, 255, 0.05);
 }
 
 .auth-footer-text {
@@ -452,7 +457,9 @@ textarea {
     margin-top: 28px;
     padding: 18px;
     border-radius: 18px;
-    background: linear-gradient(180deg, rgba(18, 31, 55, 0.9), rgba(9, 18, 33, 0.9));
+    background: linear-gradient(180deg,
+            rgba(18, 31, 55, 0.9),
+            rgba(9, 18, 33, 0.9));
     border: 1px solid var(--line);
 }
 
@@ -801,6 +808,284 @@ th {
     margin-bottom: 16px;
 }
 
+.ticket-card {
+    background: #1e1f22;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    transition: 0.2s;
+}
+
+.ticket-card:hover {
+    transform: translateY(-2px);
+    background: #25262b;
+}
+
+.user-controls,
+.ticket-controls {
+    display: flex;
+    gap: 12px;
+    margin: 18px 0 20px;
+    flex-wrap: wrap;
+}
+
+.user-controls .search,
+.ticket-controls .search {
+    min-width: 260px;
+    flex: 1;
+}
+
+.control-select {
+    min-width: 170px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text);
+    outline: none;
+}
+
+.control-select:focus {
+    border-color: rgba(50, 200, 255, 0.35);
+    box-shadow:
+        0 0 0 1px rgba(50, 200, 255, 0.12),
+        0 0 18px rgba(50, 200, 255, 0.08);
+}
+
+.ticket-meta {
+    display: grid;
+    gap: 10px;
+}
+
+.ticket-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    color: var(--muted);
+}
+
+.ticket-priority {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 74px;
+}
+
+.ticket-detail-header {
+    align-items: center;
+}
+
+.ticket-detail-heading {
+    display: grid;
+    gap: 6px;
+}
+
+.ticket-detail-heading h3 {
+    margin: 0;
+    font-size: 1.45rem;
+}
+
+.ticket-detail-meta {
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
+.ticket-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 8px;
+}
+
+.ticket-overview-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 14px;
+    display: grid;
+    gap: 10px;
+}
+
+.ticket-overview-label {
+    font-size: 0.82rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ticket-overview-value {
+    color: var(--text);
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.ticket-detail-top {
+    margin-bottom: 18px;
+}
+
+@media (max-width: 900px) {
+    .ticket-overview-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 560px) {
+    .ticket-overview-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ticket-overview-grid input {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px;
+    color: var(--text);
+}
+
+.ticket-messages {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 14px;
+}
+
+.ticket-reply-form {
+    margin-top: 16px;
+}
+
+/* CHAT CONTAINER */
+#ticketMessages {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+}
+
+/* MESSAGE WRAPPER */
+.chat-message {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+/* ALIGN RIGHT (MY MESSAGE) */
+.chat-message.me {
+    flex-direction: row-reverse;
+}
+
+/* AVATAR */
+.chat-avatar {
+    width: 36px;
+    height: 36px;
+    background: #5865f2;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: white;
+    font-size: 14px;
+}
+
+/* CONTENT */
+.chat-content {
+    max-width: 70%;
+}
+
+/* HEADER */
+.chat-header {
+    font-size: 12px;
+    margin-bottom: 3px;
+    opacity: 0.7;
+    display: flex;
+    gap: 6px;
+}
+
+/* BUBBLE */
+.chat-bubble {
+    background: #2b2d31;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* MY MESSAGE STYLE */
+.chat-message.me .chat-bubble {
+    background: #5865f2;
+    color: white;
+}
+
+/* EMPTY STATE */
+.ticket-empty {
+    text-align: center;
+    opacity: 0.6;
+    margin-top: 20px;
+}
+
+.ticket-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.ticket-controls input,
+.ticket-controls select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+    background: #1e1f22;
+    color: white;
+}
+
+/* STATUS */
+.ticket-status {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.ticket-status.open {
+    background: #2ecc71;
+    color: #fff;
+}
+
+.ticket-status.pending {
+    background: #f1c40f;
+    color: #000;
+}
+
+.ticket-status.closed {
+    background: #e74c3c;
+    color: #fff;
+}
+
+/* PRIORITY */
+.ticket-priority {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.ticket-priority.high {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.ticket-priority.medium {
+    background: #f39c12;
+    color: #000;
+}
+
+.ticket-priority.low {
+    background: #2ecc71;
+    color: #fff;
+}
+
 .custom-select {
     position: relative;
     min-width: 180px;
@@ -1078,6 +1363,7 @@ th {
         opacity: 0;
         transform: translateY(8px) scale(0.985);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);

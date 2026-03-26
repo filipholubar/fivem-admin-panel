@@ -37,9 +37,13 @@
   const profileDropdownName = document.getElementById("profileDropdownName");
   const profileDropdownEmail = document.getElementById("profileDropdownEmail");
   const openUsersSectionBtn = document.getElementById("openUsersSectionBtn");
-  const openSettingsSectionBtn = document.getElementById("openSettingsSectionBtn");
+  const openSettingsSectionBtn = document.getElementById(
+    "openSettingsSectionBtn",
+  );
 
   const usersTableBody = document.getElementById("usersTableBody");
+  const userSearch = document.getElementById("userSearch");
+  const roleFilter = document.getElementById("roleFilter");
   const ticketList = document.getElementById("ticketList");
   const activityList = document.getElementById("activityList");
   const searchInput = document.getElementById("searchInput");
@@ -79,8 +83,21 @@
   const ticketDetailTitle = document.getElementById("ticketDetailTitle");
   const ticketDetailMeta = document.getElementById("ticketDetailMeta");
   const ticketMessages = document.getElementById("ticketMessages");
-  const ticketReplyAuthor = document.getElementById("ticketReplyAuthor");
   const ticketReplyMessage = document.getElementById("ticketReplyMessage");
+  const ticketSearch = document.getElementById("ticketSearch");
+  const ticketFilter = document.getElementById("ticketFilter");
+  const ticketDetailPriority = document.getElementById("ticketDetailPriority");
+  const ticketDetailAuthor = document.getElementById("ticketDetailAuthor");
+  const ticketDetailAssigned = document.getElementById("ticketDetailAssigned");
+  const ticketPriorityInput = document.getElementById("ticketPriority");
+  const ticketDetailPriorityInput = document.getElementById(
+    "ticketDetailPriorityInput",
+  );
+  const ticketDetailAssignedInput = document.getElementById(
+    "ticketDetailAssignedInput",
+  );
+  const ticketDetailCreated = document.getElementById("ticketDetailCreated");
+  const ticketDetailUpdated = document.getElementById("ticketDetailUpdated");
 
   const forgotEmailInput = document.getElementById("forgotEmail");
   const newPasswordInput = document.getElementById("newPassword");
@@ -339,6 +356,16 @@
           if (hiddenInput.id === "ticketDetailStatus" && openedTicketId) {
             updateTicketStatus(openedTicketId, value);
           }
+
+          if (
+            hiddenInput.id === "ticketDetailPriorityInput" &&
+            openedTicketId
+          ) {
+            updateTicket(openedTicketId, {
+              priority: value,
+              updated_at: new Date().toISOString(),
+            });
+          }
         });
       });
     });
@@ -367,11 +394,15 @@
   }
 
   function switchSection(sectionKey) {
-    Object.values(sections).forEach((section) => section?.classList.remove("active"));
+    Object.values(sections).forEach((section) =>
+      section?.classList.remove("active"),
+    );
     navItems.forEach((item) => item.classList.remove("active"));
 
     sections[sectionKey]?.classList.add("active");
-    document.querySelector(`[data-section="${sectionKey}"]`)?.classList.add("active");
+    document
+      .querySelector(`[data-section="${sectionKey}"]`)
+      ?.classList.add("active");
 
     const titles = {
       dashboard: "Admin Dashboard",
@@ -381,7 +412,8 @@
       settings: "Nastavení",
     };
 
-    if (pageTitle) pageTitle.textContent = titles[sectionKey] || "Prism Dashboard";
+    if (pageTitle)
+      pageTitle.textContent = titles[sectionKey] || "Prism Dashboard";
 
     if (window.innerWidth <= 860) {
       sidebar?.classList.remove("active");
@@ -389,7 +421,11 @@
   }
 
   async function fetchUsers() {
-    const { data, error } = await db.from("users").select("*").order("id", { ascending: false });
+    usersTableBody.innerHTML = "<tr><td colspan='6'>Načítám...</td></tr>";
+    const { data, error } = await db
+      .from("users")
+      .select("*")
+      .order("id", { ascending: false });
 
     if (error) {
       console.error(error);
@@ -403,7 +439,11 @@
   }
 
   async function fetchTickets() {
-    const { data, error } = await db.from("tickets").select("*").order("id", { ascending: false });
+    ticketList.innerHTML = "<p>Načítám tickety...</p>";
+    const { data, error } = await db
+      .from("tickets")
+      .select("*")
+      .order("id", { ascending: false });
 
     if (error) {
       console.error(error);
@@ -414,6 +454,21 @@
     tickets = data || [];
     renderTickets();
     renderStats();
+  }
+
+  function getFilteredTickets() {
+    const term = (ticketSearch?.value || "").toLowerCase();
+    const filter = ticketFilter?.value || "all";
+
+    return tickets.filter((ticket) => {
+      const matchesSearch =
+        ticket.title.toLowerCase().includes(term) ||
+        ticket.owner_name.toLowerCase().includes(term);
+
+      const matchesFilter = filter === "all" ? true : ticket.status === filter;
+
+      return matchesSearch && matchesFilter;
+    });
   }
 
   async function fetchRecentMessages(limit = 6) {
@@ -451,7 +506,8 @@
   }
 
   function getFilteredUsers() {
-    const term = (searchInput?.value || "").trim().toLowerCase();
+    const term = (userSearch?.value || "").trim().toLowerCase();
+    const role = roleFilter?.value || "all";
     const filter = document.getElementById("statusFilter")?.value || "all";
 
     return users.filter((user) => {
@@ -462,6 +518,9 @@
 
       const matchesStatus = filter === "all" ? true : user.status === filter;
       return matchesSearch && matchesStatus;
+
+      const matchesRole = role === "all" ? true : user.role === role;
+      return matchesSearch && matchesStatus && matchesRole;
     });
   }
 
@@ -506,35 +565,55 @@
 
     if (!tickets.length) {
       ticketList.innerHTML = `
-        <div class="ticket-card">
-          <div class="ticket-meta">
-            <h4>Žádné tickety</h4>
-            <p>Zatím tu není žádný ticket.</p>
-          </div>
+      <div class="ticket-card">
+        <div class="ticket-meta">
+          <h4>Žádné tickety</h4>
+          <p>Zatím tu není žádný ticket.</p>
         </div>
-      `;
+      </div>
+    `;
       return;
     }
 
-    tickets.forEach((ticket) => {
+    const filteredTickets = getFilteredTickets();
+
+    if (!filteredTickets.length) {
+      ticketList.innerHTML = `
+      <div class="ticket-card">
+        <div class="ticket-meta">
+          <h4>Nic nenalezeno</h4>
+          <p>Zkus změnit hledání nebo filtr.</p>
+        </div>
+      </div>
+    `;
+      return;
+    }
+
+    filteredTickets.forEach((ticket) => {
       const card = document.createElement("div");
       card.className = "ticket-card";
 
       card.innerHTML = `
-        <div class="ticket-meta">
-          <h4>${escapeHtml(ticket.title)}</h4>
-          <p>Autor: ${escapeHtml(ticket.owner_name)}</p>
-          <p>Priorita: ${escapeHtml(ticket.priority || "Medium")}</p>
-          <p>Přiřazeno: ${escapeHtml(ticket.assigned_to || "Nepřiřazeno")}</p>
-        </div>
+      <div class="ticket-meta">
+      <h4>${escapeHtml(ticket.title)}</h4>
+      <div class="ticket-meta-row">
+      <span>Autor: ${escapeHtml(ticket.owner_name)}</span>
+      <span class="ticket-priority ${ticket.priority?.toLowerCase() || "medium"}">
+        ${escapeHtml(ticket.priority || "Medium")}
+      </span>
+    </div>
+      <p>Přiřazeno: ${escapeHtml(ticket.assigned_to || "Nepřiřazeno")}</p>
+    </div>
 
-        <div class="action-group">
-          <span class="ticket-status ${ticket.status.toLowerCase()}">${escapeHtml(ticket.status)}</span>
-          <button class="action-btn" data-open-ticket="${ticket.id}">Otevřít</button>
-          <button class="action-btn" data-edit-ticket="${ticket.id}">Upravit</button>
-          <button class="action-btn delete" data-delete-ticket="${ticket.id}">Smazat</button>
-        </div>
-      `;
+      <div class="action-group">
+        <span class="ticket-status ${ticket.status.toLowerCase()}">
+          ${escapeHtml(ticket.status)}
+        </span>
+        <button class="action-btn" data-open-ticket="${ticket.id}">Otevřít</button>
+        <button class="action-btn" data-edit-ticket="${ticket.id}">Upravit</button>
+        <button class="action-btn delete" data-delete-ticket="${ticket.id}">Smazat</button>
+      </div>
+    `;
 
       ticketList.appendChild(card);
     });
@@ -561,7 +640,9 @@
     const total = users.length;
     const online = users.filter((u) => u.status === "Online").length;
     const offline = users.filter((u) => u.status === "Offline").length;
-    const staff = users.filter((u) => ["Owner", "Admin", "Support"].includes(u.role)).length;
+    const staff = users.filter((u) =>
+      ["Owner", "Admin", "Support"].includes(u.role),
+    ).length;
     const open = tickets.filter((t) => t.status === "Open").length;
 
     if (totalUsers) totalUsers.textContent = total;
@@ -600,6 +681,7 @@
 
     if (ticketModalTitle) ticketModalTitle.textContent = "Přidat ticket";
     setCustomSelectValue("ticketStatus", "Open", "Open");
+    setCustomSelectValue("ticketPriority", "Medium", "Medium");
   }
 
   function openTicketDetailPanel() {
@@ -655,7 +737,11 @@
   }
 
   async function createTicket(payload) {
-    const { data, error } = await db.from("tickets").insert(payload).select().single();
+    const { data, error } = await db
+      .from("tickets")
+      .insert(payload)
+      .select()
+      .single();
 
     if (error) {
       console.error(error);
@@ -699,7 +785,10 @@
   }
 
   async function updateTicketStatus(id, status) {
-    const { error } = await db.from("tickets").update({ status }).eq("id", id);
+    const { error } = await db
+      .from("tickets")
+      .update({ status, update_at: new Date().toISOString() })
+      .eq("id", id);
 
     if (error) {
       console.error(error);
@@ -713,8 +802,32 @@
     if (openedTicketId === id) {
       const ticket = tickets.find((t) => t.id === id);
       if (ticket) {
-        setCustomSelectValue("ticketDetailStatus", ticket.status, ticket.status);
-        ticketDetailMeta.textContent = `Autor: ${ticket.owner_name} • Priorita: ${ticket.priority || "Medium"} • Přiřazeno: ${ticket.assigned_to || "Nepřiřazeno"}`;
+        setCustomSelectValue(
+          "ticketDetailStatus",
+          ticket.status,
+          ticket.status,
+        );
+
+        if (ticketDetailMeta) {
+          ticketDetailMeta.textContent = `Ticket #${ticket.id}`;
+        }
+
+        if (ticketDetailAuthor) {
+          ticketDetailAuthor.textContent = ticket.owner_name || "—";
+        }
+
+        if (ticketDetailAssigned) {
+          ticketDetailAssigned.textContent =
+            ticket.assigned_to || "Nepřiřazeno";
+        }
+
+        if (ticketDetailPriority) {
+          ticketDetailPriority.innerHTML = `
+        <span class="ticket-priority ${(ticket.priority || "Medium").toLowerCase()}">
+          ${escapeHtml(ticket.priority || "Medium")}
+        </span>
+      `;
+        }
       }
     }
   }
@@ -750,23 +863,43 @@
 
     if (!messages.length) {
       ticketMessages.innerHTML = `
-        <div class="ticket-message">
-          <p>V ticketu zatím nejsou žádné zprávy.</p>
-        </div>
-      `;
+      <div class="ticket-empty">
+        <p>Žádné zprávy v ticketu.</p>
+      </div>
+    `;
       return;
     }
 
-    messages.forEach((message) => {
+    messages.forEach((msg) => {
+      const isMe =
+        msg.author === currentUserProfile?.name ||
+        msg.author === currentUser?.email;
+
+      const initials = msg.author
+        ?.split(" ")
+        .map((w) => w[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+
       const item = document.createElement("div");
-      item.className = "ticket-message";
+      item.className = `chat-message ${isMe ? "me" : "other"}`;
+
       item.innerHTML = `
-        <div class="ticket-message-head">
-          <strong>${escapeHtml(message.author)}</strong>
-          <span>${escapeHtml(getFormattedDate(message.created_at))}</span>
+      <div class="chat-avatar">${initials}</div>
+
+      <div class="chat-content">
+        <div class="chat-header">
+          <span class="chat-author">${escapeHtml(msg.author)}</span>
+          <span class="chat-time">${escapeHtml(getFormattedDate(msg.created_at))}</span>
         </div>
-        <p>${escapeHtml(message.message)}</p>
-      `;
+
+        <div class="chat-bubble">
+          ${escapeHtml(msg.message)}
+        </div>
+      </div>
+    `;
+
       ticketMessages.appendChild(item);
     });
 
@@ -779,9 +912,28 @@
 
     openedTicketId = id;
 
-    if (ticketDetailTitle) ticketDetailTitle.textContent = ticket.title;
+    if (ticketDetailTitle) {
+      ticketDetailTitle.textContent = ticket.title;
+    }
+
     if (ticketDetailMeta) {
-      ticketDetailMeta.textContent = `Autor: ${ticket.owner_name} • Priorita: ${ticket.priority || "Medium"} • Přiřazeno: ${ticket.assigned_to || "Nepřiřazeno"}`;
+      ticketDetailMeta.textContent = `Ticket #${ticket.id}`;
+    }
+
+    if (ticketDetailAuthor) {
+      ticketDetailAuthor.textContent = ticket.owner_name || "—";
+    }
+
+    if (ticketDetailAssigned) {
+      ticketDetailAssigned.textContent = ticket.assigned_to || "Nepřiřazeno";
+    }
+
+    if (ticketDetailPriority) {
+      ticketDetailPriority.innerHTML = `
+      <span class="ticket-priority ${(ticket.priority || "Medium").toLowerCase()}">
+        ${escapeHtml(ticket.priority || "Medium")}
+      </span>
+    `;
     }
 
     setCustomSelectValue("ticketDetailStatus", ticket.status, ticket.status);
@@ -792,12 +944,8 @@
   }
 
   async function initializeAppData() {
-  await Promise.all([
-    fetchUsers(),
-    fetchTickets(),
-    fetchRecentMessages(),
-  ]);
-}
+    await Promise.all([fetchUsers(), fetchTickets(), fetchRecentMessages()]);
+  }
 
   async function seedDemoData() {
     await db.from("ticket_messages").delete().neq("id", 0);
@@ -880,7 +1028,7 @@
           ticket_id: ticketA.id,
           author: "Support",
           message: "Pošli prosím víc informací o své postavě.",
-        }
+        },
       );
     }
 
@@ -903,7 +1051,7 @@
           ticket_id: ticketC.id,
           author: "Admin",
           message: "Žádost byla zkontrolována a uzavřena.",
-        }
+        },
       );
     }
 
@@ -927,7 +1075,11 @@
   async function ensureUserProfile(user) {
     if (!user?.email) return;
 
-    const { data } = await db.from("users").select("*").eq("email", user.email).maybeSingle();
+    const { data } = await db
+      .from("users")
+      .select("*")
+      .eq("email", user.email)
+      .maybeSingle();
     if (data) return;
 
     await db.from("users").insert({
@@ -942,7 +1094,11 @@
   async function loadCurrentUserProfile(user) {
     if (!user?.email) return;
 
-    const { data, error } = await db.from("users").select("*").eq("email", user.email).maybeSingle();
+    const { data, error } = await db
+      .from("users")
+      .select("*")
+      .eq("email", user.email)
+      .maybeSingle();
 
     if (error) {
       console.error(error);
@@ -1047,7 +1203,7 @@
       title: ticketTitleInput.value.trim(),
       owner_name: ticketOwnerInput.value.trim(),
       status: ticketStatusInput.value,
-      priority: "Medium",
+      priority: ticketPriorityInput.value || "Medium",
       assigned_to: currentUserProfile?.name || "Support",
     };
 
@@ -1060,7 +1216,11 @@
       ok = !!created;
 
       if (created) {
-        await addTicketMessage(created.id, payload.owner_name, "Ticket byl vytvořen.");
+        await addTicketMessage(
+          created.id,
+          payload.owner_name,
+          "Ticket byl vytvořen.",
+        );
       }
     }
 
@@ -1076,7 +1236,12 @@
     e.preventDefault();
     if (!openedTicketId) return;
 
-    const author = ticketReplyAuthor.value.trim();
+    const author =
+      currentUserProfile?.name ||
+      currentUser?.user_metadata?.full_name ||
+      currentUser?.email ||
+      "User";
+
     const message = ticketReplyMessage.value.trim();
     if (!author || !message) return;
 
@@ -1169,7 +1334,9 @@
     resetPasswordForm?.classList.add("hidden");
     forgotPasswordForm?.classList.remove("hidden");
 
-    const loginEmailValue = document.getElementById("loginEmail")?.value?.trim();
+    const loginEmailValue = document
+      .getElementById("loginEmail")
+      ?.value?.trim();
     if (loginEmailValue && forgotEmailInput) {
       forgotEmailInput.value = loginEmailValue;
     }
@@ -1203,6 +1370,7 @@
     ticketForm?.reset();
     if (ticketModalTitle) ticketModalTitle.textContent = "Přidat ticket";
     setCustomSelectValue("ticketStatus", "Open", "Open");
+    setCustomSelectValue("ticketPriority", "Medium", "Medium");
     openTicketModal();
   });
 
@@ -1309,6 +1477,11 @@
       ticketTitleInput.value = ticket.title;
       ticketOwnerInput.value = ticket.owner_name;
       setCustomSelectValue("ticketStatus", ticket.status, ticket.status);
+      setCustomSelectValue(
+        "ticketPriority",
+        ticket.priority || "Medium",
+        ticket.priority || "Medium",
+      );
       openTicketModal();
     }
 
@@ -1333,6 +1506,15 @@
     }
   });
 
+  ticketDetailAssignedInput?.addEventListener("change", async () => {
+    if (!openedTicketId) return;
+
+    await updateTicket(openedTicketId, {
+      assigned_to: ticketDetailAssignedInput.value,
+      updated_at: new Date().toISOString(),
+    });
+  });
+
   db.channel("realtime-users")
     .on(
       "postgres_changes",
@@ -1353,7 +1535,7 @@
               "User";
           }
         }
-      }
+      },
     )
     .subscribe();
 
@@ -1363,7 +1545,7 @@
       { event: "*", schema: "public", table: "tickets" },
       () => {
         fetchTickets();
-      }
+      },
     )
     .subscribe();
 
@@ -1383,7 +1565,7 @@
         if (ticketsBtn && !openedTicketId) {
           ticketsBtn.textContent = `Tickety (${unreadCount})`;
         }
-      }
+      },
     )
     .subscribe();
 
@@ -1393,4 +1575,10 @@
 
   initializeCustomSelects();
   checkSession();
+
+  ticketSearch?.addEventListener("input", renderTickets);
+  ticketFilter?.addEventListener("change", renderTickets);
+
+  userSearch?.addEventListener("input", renderUsers);
+  roleFilter?.addEventListener("change", renderUsers);
 })();
