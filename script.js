@@ -1123,22 +1123,28 @@
     currentUserProfile = data;
   }
 
-  async function checkSession() {
-    const { data } = await db.auth.getSession();
+async function checkSession() {
+  const { data, error } = await db.auth.getSession();
 
-    if (data.session) {
-      currentUser = data.session.user;
-
-      await loadCurrentUserProfile(currentUser);
-
-      await ensureUserProfile(currentUser);
-
-      showApp(currentUser);
-      await initializeAppData();
-
-      applyPermissions();
-    }
+  if (error) {
+    console.error(error);
+    showAuth();
+    return;
   }
+
+  if (data.session) {
+    currentUser = data.session.user;
+
+    await ensureUserProfile(currentUser);
+    await loadCurrentUserProfile(currentUser);
+
+    showApp(currentUser);
+    await initializeAppData();
+    applyPermissions();
+  } else {
+    showAuth();
+  }
+}
 
   db.channel("realtime-users")
     .on(
