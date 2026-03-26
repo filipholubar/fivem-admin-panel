@@ -10,7 +10,6 @@
   let openedTicketId = null;
   let editingUserId = null;
   let editingTicketId = null;
-
   let currentUser = null;
   let currentUserProfile = null;
   let unreadCount = 0;
@@ -23,10 +22,22 @@
 
   const loginForm = document.getElementById("loginForm");
   const registerForm = document.getElementById("registerForm");
+  const forgotPasswordForm = document.getElementById("forgotPasswordForm");
+  const resetPasswordForm = document.getElementById("resetPasswordForm");
 
   const logoutBtn = document.getElementById("logoutBtn");
   const googleLoginBtn = document.getElementById("googleLoginBtn");
+  const githubLoginBtn = document.getElementById("githubLoginBtn");
+  const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
+  const backToLoginBtn = document.getElementById("backToLoginBtn");
+
   const userEmailPill = document.getElementById("userEmailPill");
+  const profileMenuWrap = document.getElementById("profileMenuWrap");
+  const profileDropdown = document.getElementById("profileDropdown");
+  const profileDropdownName = document.getElementById("profileDropdownName");
+  const profileDropdownEmail = document.getElementById("profileDropdownEmail");
+  const openUsersSectionBtn = document.getElementById("openUsersSectionBtn");
+  const openSettingsSectionBtn = document.getElementById("openSettingsSectionBtn");
 
   const usersTableBody = document.getElementById("usersTableBody");
   const ticketList = document.getElementById("ticketList");
@@ -71,6 +82,10 @@
   const ticketReplyAuthor = document.getElementById("ticketReplyAuthor");
   const ticketReplyMessage = document.getElementById("ticketReplyMessage");
 
+  const forgotEmailInput = document.getElementById("forgotEmail");
+  const newPasswordInput = document.getElementById("newPassword");
+  const confirmPasswordInput = document.getElementById("confirmPassword");
+
   const addUserBtn = document.getElementById("addUserBtn");
   const addTicketBtn = document.getElementById("addTicketBtn");
   const closeUserModal = document.getElementById("closeUserModal");
@@ -81,20 +96,6 @@
   const pageTitle = document.getElementById("pageTitle");
   const menuBtn = document.getElementById("menuBtn");
   const sidebar = document.getElementById("sidebar");
-  const githubLoginBtn = document.getElementById("githubLoginBtn");
-  const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
-  const resetPasswordForm = document.getElementById("resetPasswordForm"); 
-  const newPasswordInput = document.getElementById("newPassword");
-  const confirmPasswordInput = document.getElementById("confirmPassword");
-const profileMenuWrap = document.getElementById("profileMenuWrap");
-const profileDropdown = document.getElementById("profileDropdown");
-const profileDropdownName = document.getElementById("profileDropdownName");
-const profileDropdownEmail = document.getElementById("profileDropdownEmail");
-const openUsersSectionBtn = document.getElementById("openUsersSectionBtn");
-const openSettingsSectionBtn = document.getElementById("openSettingsSectionBtn");
-const forgotPasswordForm = document.getElementById("forgotPasswordForm");
-const forgotEmailInput = document.getElementById("forgotEmail");
-const backToLoginBtn = document.getElementById("backToLoginBtn");
 
   const navItems = document.querySelectorAll(".nav-item");
   const sections = {
@@ -129,6 +130,7 @@ const backToLoginBtn = document.getElementById("backToLoginBtn");
 
   function setLoadingButton(button, loading, text = "Ukládám...") {
     if (!button) return;
+
     if (loading) {
       button.dataset.originalText = button.textContent;
       button.textContent = text;
@@ -141,6 +143,7 @@ const backToLoginBtn = document.getElementById("backToLoginBtn");
 
   function getFormattedDate(dateString) {
     if (!dateString) return "";
+
     const date = new Date(dateString);
     if (Number.isNaN(date.getTime())) return dateString;
 
@@ -158,66 +161,64 @@ const backToLoginBtn = document.getElementById("backToLoginBtn");
     appShell?.classList.add("hidden");
   }
 
-function showApp(user) {
-  currentUser = user;
-
-  authScreen?.classList.add("hidden");
-  appShell?.classList.remove("hidden");
-
-  if (userEmailPill) {
-    userEmailPill.textContent =
-      currentUserProfile?.name ||
-      user?.user_metadata?.full_name ||
-      user?.email ||
-      "User";
-  }
-
-  updateProfileDropdown();
-}
-
   function updateProfileDropdown() {
-  if (profileDropdownEmail) {
-    profileDropdownEmail.textContent = currentUser?.email || "bez e-mailu";
-  }
-
-  if (profileDropdownName) {
-    profileDropdownName.textContent =
-      currentUserProfile?.name ||
-      currentUser?.user_metadata?.full_name ||
-      currentUser?.email ||
-      "Uživatel";
-  }
-}
-
-function toggleProfileDropdown() {
-  profileDropdown?.classList.toggle("hidden");
-}
-
-function closeProfileDropdown() {
-  profileDropdown?.classList.add("hidden");
-}
-
- function switchAuthTab(mode) {
-  const isLogin = mode === "login";
-
-  loginTab?.classList.toggle("active", isLogin);
-  registerTab?.classList.toggle("active", !isLogin);
-
-  loginForm?.classList.add("hidden");
-  registerForm?.classList.add("hidden");
-
-  if (typeof resetPasswordForm !== "undefined" && resetPasswordForm) {
-    resetPasswordForm.classList.add("hidden");
-  }
-
-  requestAnimationFrame(() => {
-    if (isLogin) {
-      loginForm?.classList.remove("hidden");
-    } else {
-      registerForm?.classList.remove("hidden");
+    if (profileDropdownEmail) {
+      profileDropdownEmail.textContent = currentUser?.email || "bez e-mailu";
     }
-  });
-}
+
+    if (profileDropdownName) {
+      profileDropdownName.textContent =
+        currentUserProfile?.name ||
+        currentUser?.user_metadata?.full_name ||
+        currentUser?.email ||
+        "Uživatel";
+    }
+  }
+
+  function showApp(user) {
+    currentUser = user;
+
+    authScreen?.classList.add("hidden");
+    appShell?.classList.remove("hidden");
+
+    if (userEmailPill) {
+      userEmailPill.textContent =
+        currentUserProfile?.name ||
+        user?.user_metadata?.full_name ||
+        user?.email ||
+        "User";
+    }
+
+    updateProfileDropdown();
+  }
+
+  function toggleProfileDropdown() {
+    profileDropdown?.classList.toggle("hidden");
+  }
+
+  function closeProfileDropdown() {
+    profileDropdown?.classList.add("hidden");
+  }
+
+  function switchAuthTab(mode) {
+    const isLogin = mode === "login";
+
+    loginTab?.classList.toggle("active", isLogin);
+    registerTab?.classList.toggle("active", !isLogin);
+
+    loginForm?.classList.add("hidden");
+    registerForm?.classList.add("hidden");
+    forgotPasswordForm?.classList.add("hidden");
+    resetPasswordForm?.classList.add("hidden");
+
+    requestAnimationFrame(() => {
+      if (isLogin) {
+        loginForm?.classList.remove("hidden");
+      } else {
+        registerForm?.classList.remove("hidden");
+      }
+    });
+  }
 
   async function handleLogin(email, password) {
     const { error } = await db.auth.signInWithPassword({ email, password });
@@ -238,38 +239,66 @@ function closeProfileDropdown() {
       return false;
     }
 
-    showToast("Registrace OK");
+    showToast("Registrace proběhla. Zkontroluj e-mail pro potvrzení účtu.");
     switchAuthTab("login");
     return true;
   }
 
-async function handleLogout() {
-  await db.auth.signOut();
+  async function handleLogout() {
+    await db.auth.signOut();
 
-  currentUser = null;
-  currentUserProfile = null;
-  unreadCount = 0;
-  users = [];
-  tickets = [];
-  openedTicketId = null;
-  editingUserId = null;
-  editingTicketId = null;
+    currentUser = null;
+    currentUserProfile = null;
+    unreadCount = 0;
+    users = [];
+    tickets = [];
+    openedTicketId = null;
+    editingUserId = null;
+    editingTicketId = null;
 
-  const ticketsBtn = document.querySelector('[data-section="tickets"]');
-  if (ticketsBtn) {
-    ticketsBtn.textContent = "Tickety";
+    const ticketsBtn = document.querySelector('[data-section="tickets"]');
+    if (ticketsBtn) ticketsBtn.textContent = "Tickety";
+
+    if (userEmailPill) userEmailPill.textContent = "Uživatel";
+    if (addUserBtn) addUserBtn.style.display = "";
+    if (addTicketBtn) addTicketBtn.style.display = "";
+
+    closeProfileDropdown();
+    showAuth();
   }
 
-  if (userEmailPill) {
-  userEmailPill.textContent = "Uživatel";
+  async function handleGoogleLogin() {
+    await db.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin + window.location.pathname,
+      },
+    });
   }
 
-  addUserBtn.style.display = "";
-  addTicketBtn.style.display = "";
+  async function handleGithubLogin() {
+    await db.auth.signInWithOAuth({
+      provider: "github",
+      options: {
+        redirectTo: window.location.origin + window.location.pathname,
+      },
+    });
+  }
 
-  showAuth();
-  closeProfileDropdown();
-}
+  async function handleForgotPasswordRequest(email) {
+    const { error } = await db.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname,
+    });
+
+    if (error) {
+      console.error(error);
+      showToast("Nepodařilo se odeslat email", "error");
+      return false;
+    }
+
+    showToast("Reset link byl odeslán na email");
+    return true;
+  }
 
   function initializeCustomSelects() {
     const customSelects = document.querySelectorAll(".custom-select");
@@ -326,7 +355,6 @@ async function handleLogout() {
     if (!input) return;
 
     input.value = value;
-
     const select = input.closest(".custom-select");
     if (!select) return;
 
@@ -339,15 +367,11 @@ async function handleLogout() {
   }
 
   function switchSection(sectionKey) {
-    Object.values(sections).forEach((section) =>
-      section?.classList.remove("active"),
-    );
+    Object.values(sections).forEach((section) => section?.classList.remove("active"));
     navItems.forEach((item) => item.classList.remove("active"));
 
     sections[sectionKey]?.classList.add("active");
-    document
-      .querySelector(`[data-section="${sectionKey}"]`)
-      ?.classList.add("active");
+    document.querySelector(`[data-section="${sectionKey}"]`)?.classList.add("active");
 
     const titles = {
       dashboard: "Admin Dashboard",
@@ -357,8 +381,7 @@ async function handleLogout() {
       settings: "Nastavení",
     };
 
-    if (pageTitle)
-      pageTitle.textContent = titles[sectionKey] || "Prism Dashboard";
+    if (pageTitle) pageTitle.textContent = titles[sectionKey] || "Prism Dashboard";
 
     if (window.innerWidth <= 860) {
       sidebar?.classList.remove("active");
@@ -366,10 +389,7 @@ async function handleLogout() {
   }
 
   async function fetchUsers() {
-    const { data, error } = await db
-      .from("users")
-      .select("*")
-      .order("id", { ascending: false });
+    const { data, error } = await db.from("users").select("*").order("id", { ascending: false });
 
     if (error) {
       console.error(error);
@@ -383,10 +403,7 @@ async function handleLogout() {
   }
 
   async function fetchTickets() {
-    const { data, error } = await db
-      .from("tickets")
-      .select("*")
-      .order("id", { ascending: false });
+    const { data, error } = await db.from("tickets").select("*").order("id", { ascending: false });
 
     if (error) {
       console.error(error);
@@ -400,42 +417,22 @@ async function handleLogout() {
   }
 
   async function fetchRecentMessages(limit = 6) {
-  const { data, error } = await db
-    .from("ticket_messages")
-    .select("id, author, message, created_at, ticket_id")
-    .order("created_at", { ascending: false })
-    .limit(limit);
+    const { data, error } = await db
+      .from("ticket_messages")
+      .select("id, author, message, created_at, ticket_id")
+      .order("created_at", { ascending: false })
+      .limit(limit);
 
-  if (error) {
-    console.error(error);
-    if (activityList) {
-      activityList.innerHTML = "<li>Nepodařilo se načíst aktivitu.</li>";
+    if (error) {
+      console.error(error);
+      if (activityList) {
+        activityList.innerHTML = "<li>Nepodařilo se načíst aktivitu.</li>";
+      }
+      return;
     }
-    return;
+
+    renderActivities(data || []);
   }
-
-  renderActivities(data || []);
-}
-
-db.channel("realtime-messages")
-  .on(
-    "postgres_changes",
-    { event: "*", schema: "public", table: "ticket_messages" },
-    () => {
-      if (openedTicketId) {
-        openTicketDetailPanelData(openedTicketId);
-      }
-
-      fetchRecentMessages();
-
-      unreadCount++;
-      const ticketsBtn = document.querySelector('[data-section="tickets"]');
-      if (ticketsBtn) {
-        ticketsBtn.textContent = `Tickety (${unreadCount})`;
-      }
-    }
-  )
-  .subscribe();
 
   async function fetchTicketMessages(ticketId) {
     const { data, error } = await db
@@ -476,28 +473,28 @@ db.channel("realtime-messages")
 
     if (!filteredUsers.length) {
       usersTableBody.innerHTML = `
-                <tr>
-                    <td colspan="6">Žádní uživatelé nenalezeni.</td>
-                </tr>
-            `;
+        <tr>
+          <td colspan="6">Žádní uživatelé nenalezeni.</td>
+        </tr>
+      `;
       return;
     }
 
     filteredUsers.forEach((user) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-                <td>${escapeHtml(user.name)}</td>
-                <td>${escapeHtml(user.email || "—")}</td>
-                <td>${escapeHtml(user.role)}</td>
-                <td><span class="status ${user.status.toLowerCase()}">${escapeHtml(user.status)}</span></td>
-                <td>${escapeHtml(user.last_activity || "—")}</td>
-                <td>
-                    <div class="action-group">
-                        <button class="action-btn" data-edit-user="${user.id}">Upravit</button>
-                        <button class="action-btn delete" data-delete-user="${user.id}">Smazat</button>
-                    </div>
-                </td>
-            `;
+        <td>${escapeHtml(user.name)}</td>
+        <td>${escapeHtml(user.email || "—")}</td>
+        <td>${escapeHtml(user.role)}</td>
+        <td><span class="status ${user.status.toLowerCase()}">${escapeHtml(user.status)}</span></td>
+        <td>${escapeHtml(user.last_activity || "—")}</td>
+        <td>
+          <div class="action-group">
+            <button class="action-btn" data-edit-user="${user.id}">Upravit</button>
+            <button class="action-btn delete" data-delete-user="${user.id}">Smazat</button>
+          </div>
+        </td>
+      `;
       usersTableBody.appendChild(tr);
     });
   }
@@ -508,7 +505,14 @@ db.channel("realtime-messages")
     ticketList.innerHTML = "";
 
     if (!tickets.length) {
-      ticketList.innerHTML = `<div class="ticket-card"><div class="ticket-meta"><h4>Žádné tickety</h4><p>Zatím tu není žádný ticket.</p></div></div>`;
+      ticketList.innerHTML = `
+        <div class="ticket-card">
+          <div class="ticket-meta">
+            <h4>Žádné tickety</h4>
+            <p>Zatím tu není žádný ticket.</p>
+          </div>
+        </div>
+      `;
       return;
     }
 
@@ -517,20 +521,20 @@ db.channel("realtime-messages")
       card.className = "ticket-card";
 
       card.innerHTML = `
-                <div class="ticket-meta">
-                    <h4>${escapeHtml(ticket.title)}</h4>
-                    <p>Autor: ${escapeHtml(ticket.owner_name)}</p>
-                    <p>Priorita: ${escapeHtml(ticket.priority || "Medium")}</p>
-                    <p>Přiřazeno: ${escapeHtml(ticket.assigned_to || "Nepřiřazeno")}</p>
-                </div>
+        <div class="ticket-meta">
+          <h4>${escapeHtml(ticket.title)}</h4>
+          <p>Autor: ${escapeHtml(ticket.owner_name)}</p>
+          <p>Priorita: ${escapeHtml(ticket.priority || "Medium")}</p>
+          <p>Přiřazeno: ${escapeHtml(ticket.assigned_to || "Nepřiřazeno")}</p>
+        </div>
 
-                <div class="action-group">
-                    <span class="ticket-status ${ticket.status.toLowerCase()}">${escapeHtml(ticket.status)}</span>
-                    <button class="action-btn" data-open-ticket="${ticket.id}">Otevřít</button>
-                    <button class="action-btn" data-edit-ticket="${ticket.id}">Upravit</button>
-                    <button class="action-btn delete" data-delete-ticket="${ticket.id}">Smazat</button>
-                </div>
-            `;
+        <div class="action-group">
+          <span class="ticket-status ${ticket.status.toLowerCase()}">${escapeHtml(ticket.status)}</span>
+          <button class="action-btn" data-open-ticket="${ticket.id}">Otevřít</button>
+          <button class="action-btn" data-edit-ticket="${ticket.id}">Upravit</button>
+          <button class="action-btn delete" data-delete-ticket="${ticket.id}">Smazat</button>
+        </div>
+      `;
 
       ticketList.appendChild(card);
     });
@@ -557,9 +561,7 @@ db.channel("realtime-messages")
     const total = users.length;
     const online = users.filter((u) => u.status === "Online").length;
     const offline = users.filter((u) => u.status === "Offline").length;
-    const staff = users.filter((u) =>
-      ["Owner", "Admin", "Support"].includes(u.role),
-    ).length;
+    const staff = users.filter((u) => ["Owner", "Admin", "Support"].includes(u.role)).length;
     const open = tickets.filter((t) => t.status === "Open").length;
 
     if (totalUsers) totalUsers.textContent = total;
@@ -581,6 +583,7 @@ db.channel("realtime-messages")
     userModalBackdrop?.classList.add("hidden");
     userForm?.reset();
     editingUserId = null;
+
     if (userModalTitle) userModalTitle.textContent = "Přidat uživatele";
     setCustomSelectValue("userRole", "Owner", "Owner");
     setCustomSelectValue("userStatus", "Online", "Online");
@@ -594,6 +597,7 @@ db.channel("realtime-messages")
     ticketModalBackdrop?.classList.add("hidden");
     ticketForm?.reset();
     editingTicketId = null;
+
     if (ticketModalTitle) ticketModalTitle.textContent = "Přidat ticket";
     setCustomSelectValue("ticketStatus", "Open", "Open");
   }
@@ -651,11 +655,7 @@ db.channel("realtime-messages")
   }
 
   async function createTicket(payload) {
-    const { data, error } = await db
-      .from("tickets")
-      .insert(payload)
-      .select()
-      .single();
+    const { data, error } = await db.from("tickets").insert(payload).select().single();
 
     if (error) {
       console.error(error);
@@ -713,39 +713,35 @@ db.channel("realtime-messages")
     if (openedTicketId === id) {
       const ticket = tickets.find((t) => t.id === id);
       if (ticket) {
-        setCustomSelectValue(
-          "ticketDetailStatus",
-          ticket.status,
-          ticket.status,
-        );
+        setCustomSelectValue("ticketDetailStatus", ticket.status, ticket.status);
         ticketDetailMeta.textContent = `Autor: ${ticket.owner_name} • Priorita: ${ticket.priority || "Medium"} • Přiřazeno: ${ticket.assigned_to || "Nepřiřazeno"}`;
       }
     }
   }
 
-async function addTicketMessage(ticketId, author, message) {
-  const { error } = await db.from("ticket_messages").insert({
-    ticket_id: ticketId,
-    author,
-    message,
-  });
-
-  if (error) {
-    console.error(error);
-    showToast("Zpráva nešla odeslat", "error");
-    return false;
-  }
-
-  if ("Notification" in window && Notification.permission === "granted") {
-    new Notification("Nová zpráva", {
-      body: message,
+  async function addTicketMessage(ticketId, author, message) {
+    const { error } = await db.from("ticket_messages").insert({
+      ticket_id: ticketId,
+      author,
+      message,
     });
-  }
 
-  showToast("Zpráva byla odeslána");
-  await fetchRecentMessages();
-  return true;
-}
+    if (error) {
+      console.error(error);
+      showToast("Zpráva nešla odeslat", "error");
+      return false;
+    }
+
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification("Nová zpráva", {
+        body: message,
+      });
+    }
+
+    showToast("Zpráva byla odeslána");
+    await fetchRecentMessages();
+    return true;
+  }
 
   function renderTicketMessages(messages) {
     if (!ticketMessages) return;
@@ -754,10 +750,10 @@ async function addTicketMessage(ticketId, author, message) {
 
     if (!messages.length) {
       ticketMessages.innerHTML = `
-                <div class="ticket-message">
-                    <p>V ticketu zatím nejsou žádné zprávy.</p>
-                </div>
-            `;
+        <div class="ticket-message">
+          <p>V ticketu zatím nejsou žádné zprávy.</p>
+        </div>
+      `;
       return;
     }
 
@@ -765,12 +761,12 @@ async function addTicketMessage(ticketId, author, message) {
       const item = document.createElement("div");
       item.className = "ticket-message";
       item.innerHTML = `
-                <div class="ticket-message-head">
-                    <strong>${escapeHtml(message.author)}</strong>
-                    <span>${escapeHtml(getFormattedDate(message.created_at))}</span>
-                </div>
-                <p>${escapeHtml(message.message)}</p>
-            `;
+        <div class="ticket-message-head">
+          <strong>${escapeHtml(message.author)}</strong>
+          <span>${escapeHtml(getFormattedDate(message.created_at))}</span>
+        </div>
+        <p>${escapeHtml(message.message)}</p>
+      `;
       ticketMessages.appendChild(item);
     });
 
@@ -876,7 +872,7 @@ async function addTicketMessage(ticketId, author, message) {
           ticket_id: ticketA.id,
           author: "Support",
           message: "Pošli prosím víc informací o své postavě.",
-        },
+        }
       );
     }
 
@@ -899,7 +895,7 @@ async function addTicketMessage(ticketId, author, message) {
           ticket_id: ticketC.id,
           author: "Admin",
           message: "Žádost byla zkontrolována a uzavřena.",
-        },
+        }
       );
     }
 
@@ -920,6 +916,98 @@ async function addTicketMessage(ticketId, author, message) {
     await initializeAppData();
   }
 
+  async function ensureUserProfile(user) {
+    if (!user?.email) return;
+
+    const { data } = await db.from("users").select("*").eq("email", user.email).maybeSingle();
+    if (data) return;
+
+    await db.from("users").insert({
+      name: user.user_metadata?.full_name || user.email.split("@")[0],
+      email: user.email,
+      role: "Member",
+      status: "Online",
+      last_activity: "Právě přihlášen",
+    });
+  }
+
+  async function loadCurrentUserProfile(user) {
+    if (!user?.email) return;
+
+    const { data, error } = await db.from("users").select("*").eq("email", user.email).maybeSingle();
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    if (!data) {
+      await db.from("users").insert({
+        name: user.user_metadata?.full_name || user.email.split("@")[0],
+        email: user.email,
+        role: "Member",
+        status: "Online",
+        last_activity: "Právě přihlášen",
+      });
+
+      return loadCurrentUserProfile(user);
+    }
+
+    currentUserProfile = data;
+  }
+
+  async function checkSession() {
+    const { data, error } = await db.auth.getSession();
+
+    if (error) {
+      console.error(error);
+      showAuth();
+      return;
+    }
+
+    const hash = window.location.hash;
+
+    if (hash.includes("type=recovery")) {
+      loginForm.classList.add("hidden");
+      registerForm.classList.add("hidden");
+      forgotPasswordForm.classList.add("hidden");
+      resetPasswordForm.classList.remove("hidden");
+      showAuth();
+      showToast("Nastav si nové heslo");
+      return;
+    }
+
+    if (data.session) {
+      currentUser = data.session.user;
+
+      await ensureUserProfile(currentUser);
+      await loadCurrentUserProfile(currentUser);
+
+      showApp(currentUser);
+      await initializeAppData();
+      applyPermissions();
+    } else {
+      showAuth();
+    }
+  }
+
+  function applyPermissions() {
+    if (!currentUserProfile) return;
+
+    if (addUserBtn) addUserBtn.style.display = "";
+    if (addTicketBtn) addTicketBtn.style.display = "";
+
+    const role = currentUserProfile.role;
+
+    if (role !== "Owner" && addUserBtn) {
+      addUserBtn.style.display = "none";
+    }
+
+    if (!["Owner", "Admin"].includes(role) && addTicketBtn) {
+      addTicketBtn.style.display = "none";
+    }
+  }
+
   userForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -933,16 +1021,11 @@ async function addTicketMessage(ticketId, author, message) {
       last_activity: userActivityInput.value.trim(),
     };
 
-    let ok = false;
-
-    if (editingUserId) {
-      ok = await updateUser(editingUserId, payload);
-    } else {
-      ok = await createUser(payload);
-    }
+    const ok = editingUserId
+      ? await updateUser(editingUserId, payload)
+      : await createUser(payload);
 
     setLoadingButton(submitButton, false);
-
     if (ok) closeUserModalFn();
   });
 
@@ -969,11 +1052,7 @@ async function addTicketMessage(ticketId, author, message) {
       ok = !!created;
 
       if (created) {
-        await addTicketMessage(
-          created.id,
-          payload.owner_name,
-          "Ticket byl vytvořen.",
-        );
+        await addTicketMessage(created.id, payload.owner_name, "Ticket byl vytvořen.");
       }
     }
 
@@ -1003,6 +1082,180 @@ async function addTicketMessage(ticketId, author, message) {
     if (ok) {
       ticketReplyForm.reset();
       await openTicketDetailPanelData(openedTicketId);
+    }
+  });
+
+  loginForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+
+    const ok = await handleLogin(email, password);
+    if (ok) {
+      await checkSession();
+    }
+  });
+
+  registerForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById("registerEmail").value.trim();
+    const password = document.getElementById("registerPassword").value;
+
+    await handleRegister(email, password);
+  });
+
+  forgotPasswordForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = forgotEmailInput.value.trim();
+    if (!email) {
+      showToast("Zadej e-mail.", "error");
+      return;
+    }
+
+    const ok = await handleForgotPasswordRequest(email);
+    if (!ok) return;
+
+    forgotPasswordForm.reset();
+    forgotPasswordForm.classList.add("hidden");
+    loginForm.classList.remove("hidden");
+  });
+
+  resetPasswordForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const password = newPasswordInput.value.trim();
+    const confirm = confirmPasswordInput.value.trim();
+
+    if (password.length < 6) {
+      showToast("Heslo musí mít alespoň 6 znaků", "error");
+      return;
+    }
+
+    if (password !== confirm) {
+      showToast("Hesla se neshodují", "error");
+      return;
+    }
+
+    const { error } = await db.auth.updateUser({ password });
+
+    if (error) {
+      console.error(error);
+      showToast("Změna hesla selhala", "error");
+      return;
+    }
+
+    showToast("Heslo bylo změněno");
+
+    resetPasswordForm.reset();
+    resetPasswordForm.classList.add("hidden");
+    loginForm.classList.remove("hidden");
+    window.history.replaceState({}, document.title, window.location.pathname);
+  });
+
+  forgotPasswordBtn?.addEventListener("click", () => {
+    loginForm?.classList.add("hidden");
+    registerForm?.classList.add("hidden");
+    resetPasswordForm?.classList.add("hidden");
+    forgotPasswordForm?.classList.remove("hidden");
+
+    const loginEmailValue = document.getElementById("loginEmail")?.value?.trim();
+    if (loginEmailValue && forgotEmailInput) {
+      forgotEmailInput.value = loginEmailValue;
+    }
+  });
+
+  backToLoginBtn?.addEventListener("click", () => {
+    forgotPasswordForm?.classList.add("hidden");
+    resetPasswordForm?.classList.add("hidden");
+    registerForm?.classList.add("hidden");
+    loginForm?.classList.remove("hidden");
+  });
+
+  logoutBtn?.addEventListener("click", handleLogout);
+  googleLoginBtn?.addEventListener("click", handleGoogleLogin);
+  githubLoginBtn?.addEventListener("click", handleGithubLogin);
+
+  loginTab?.addEventListener("click", () => switchAuthTab("login"));
+  registerTab?.addEventListener("click", () => switchAuthTab("register"));
+
+  addUserBtn?.addEventListener("click", () => {
+    editingUserId = null;
+    userForm?.reset();
+    if (userModalTitle) userModalTitle.textContent = "Přidat uživatele";
+    setCustomSelectValue("userRole", "Owner", "Owner");
+    setCustomSelectValue("userStatus", "Online", "Online");
+    openUserModal();
+  });
+
+  addTicketBtn?.addEventListener("click", () => {
+    editingTicketId = null;
+    ticketForm?.reset();
+    if (ticketModalTitle) ticketModalTitle.textContent = "Přidat ticket";
+    setCustomSelectValue("ticketStatus", "Open", "Open");
+    openTicketModal();
+  });
+
+  closeUserModal?.addEventListener("click", closeUserModalFn);
+  closeTicketModal?.addEventListener("click", closeTicketModalFn);
+  closeTicketDetail?.addEventListener("click", closeTicketDetailFn);
+
+  userModalBackdrop?.addEventListener("click", (e) => {
+    if (e.target === userModalBackdrop) closeUserModalFn();
+  });
+
+  ticketModalBackdrop?.addEventListener("click", (e) => {
+    if (e.target === ticketModalBackdrop) closeTicketModalFn();
+  });
+
+  ticketDetailBackdrop?.addEventListener("click", (e) => {
+    if (e.target === ticketDetailBackdrop) closeTicketDetailFn();
+  });
+
+  searchInput?.addEventListener("input", renderUsers);
+
+  seedDataBtn?.addEventListener("click", async () => {
+    const ok = window.confirm("Opravdu chceš obnovit demo data?");
+    if (!ok) return;
+    await seedDemoData();
+  });
+
+  clearDataBtn?.addEventListener("click", async () => {
+    const ok = window.confirm("Opravdu chceš smazat všechna data?");
+    if (!ok) return;
+    await clearAllData();
+  });
+
+  navItems.forEach((item) => {
+    item.addEventListener("click", () => {
+      switchSection(item.dataset.section);
+    });
+  });
+
+  menuBtn?.addEventListener("click", () => {
+    sidebar?.classList.toggle("active");
+  });
+
+  userEmailPill?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleProfileDropdown();
+  });
+
+  openUsersSectionBtn?.addEventListener("click", () => {
+    switchSection("users");
+    closeProfileDropdown();
+  });
+
+  openSettingsSectionBtn?.addEventListener("click", () => {
+    switchSection("settings");
+    closeProfileDropdown();
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!profileMenuWrap?.contains(e.target)) {
+      closeProfileDropdown();
     }
   });
 
@@ -1072,207 +1325,29 @@ async function addTicketMessage(ticketId, author, message) {
     }
   });
 
-  async function initializeAppData() {
-    await Promise.all([fetchUsers(), fetchTickets(), fetchRecentMessages()]);
-  }
+  db.channel("realtime-users")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "users" },
+      async () => {
+        await fetchUsers();
 
-  addUserBtn?.addEventListener("click", () => {
-    editingUserId = null;
-    userForm?.reset();
-    if (userModalTitle) userModalTitle.textContent = "Přidat uživatele";
-    setCustomSelectValue("userRole", "Owner", "Owner");
-    setCustomSelectValue("userStatus", "Online", "Online");
-    openUserModal();
-  });
+        if (currentUser) {
+          await loadCurrentUserProfile(currentUser);
+          applyPermissions();
+          updateProfileDropdown();
 
-  addTicketBtn?.addEventListener("click", () => {
-    editingTicketId = null;
-    ticketForm?.reset();
-    if (ticketModalTitle) ticketModalTitle.textContent = "Přidat ticket";
-    setCustomSelectValue("ticketStatus", "Open", "Open");
-    openTicketModal();
-  });
-
-  closeUserModal?.addEventListener("click", closeUserModalFn);
-  closeTicketModal?.addEventListener("click", closeTicketModalFn);
-  closeTicketDetail?.addEventListener("click", closeTicketDetailFn);
-
-  userModalBackdrop?.addEventListener("click", (e) => {
-    if (e.target === userModalBackdrop) closeUserModalFn();
-  });
-
-  ticketModalBackdrop?.addEventListener("click", (e) => {
-    if (e.target === ticketModalBackdrop) closeTicketModalFn();
-  });
-
-  ticketDetailBackdrop?.addEventListener("click", (e) => {
-    if (e.target === ticketDetailBackdrop) closeTicketDetailFn();
-  });
-
-  searchInput?.addEventListener("input", renderUsers);
-
-  seedDataBtn?.addEventListener("click", async () => {
-    const ok = window.confirm("Opravdu chceš obnovit demo data?");
-    if (!ok) return;
-    await seedDemoData();
-  });
-
-  clearDataBtn?.addEventListener("click", async () => {
-    const ok = window.confirm("Opravdu chceš smazat všechna data?");
-    if (!ok) return;
-    await clearAllData();
-  });
-
-  navItems.forEach((item) => {
-    item.addEventListener("click", () => {
-      switchSection(item.dataset.section);
-    });
-  });
-
-  menuBtn?.addEventListener("click", () => {
-    sidebar?.classList.toggle("active");
-  });
-
-  async function handleGoogleLogin() {
-    await db.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: window.location.origin + window.location.pathname,
-      },
-    });
-  }
-
-  async function handleGithubLogin() {
-    await db.auth.signInWithOAuth({
-      provider: "github",
-      options: {
-      redirectTo: window.location.origin + window.location.pathname,
-      },
-    });
-  }
-
-  loginTab?.addEventListener("click", () => switchAuthTab("login"));
-  registerTab?.addEventListener("click", () => switchAuthTab("register"));
-
-  loginForm?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const email = document.getElementById("loginEmail").value;
-    const password = document.getElementById("loginPassword").value;
-
-    const ok = await handleLogin(email, password);
-    if (ok) checkSession();
-  });
-
-  registerForm?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const email = document.getElementById("registerEmail").value;
-    const password = document.getElementById("registerPassword").value;
-
-    await handleRegister(email, password);
-  });
-
-  logoutBtn?.addEventListener("click", handleLogout);
-  googleLoginBtn?.addEventListener("click", handleGoogleLogin);
-
-  async function ensureUserProfile(user) {
-    if (!user?.email) return;
-
-    const { data } = await db
-      .from("users")
-      .select("*")
-      .eq("email", user.email)
-      .maybeSingle();
-
-    if (data) return;
-
-    await db.from("users").insert({
-      name: user.user_metadata?.full_name || user.email.split("@")[0],
-      email: user.email,
-      role: "Member",
-      status: "Online",
-      last_activity: "Právě přihlášen",
-    });
-  }
-
-  async function loadCurrentUserProfile(user) {
-    if (!user?.email) return;
-
-    const { data, error } = await db
-      .from("users")
-      .select("*")
-      .eq("email", user.email)
-      .maybeSingle();
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    if (!data) {
-      await db.from("users").insert({
-        name: user.user_metadata?.full_name || user.email.split("@")[0],
-        email: user.email,
-        role: "Member",
-        status: "Online",
-        last_activity: "Právě přihlášen",
-      });
-
-      return loadCurrentUserProfile(user);
-    }
-
-    currentUserProfile = data;
-  }
-
-async function checkSession() {
-  const { data, error } = await db.auth.getSession();
-
-  if (error) {
-    console.error(error);
-    showAuth();
-    return;
-  }
-
-  const hash = window.location.hash;
-
-  if (hash.includes("type=recovery")) {
-    loginForm.classList.add("hidden");
-    registerForm.classList.add("hidden");
-    resetPasswordForm.classList.remove("hidden");
-
-    showToast("Nastav si nové heslo");
-    return;
-  }
-
-  if (data.session) {
-    currentUser = data.session.user;
-
-    await ensureUserProfile(currentUser);
-    await loadCurrentUserProfile(currentUser);
-
-    showApp(currentUser);
-    await initializeAppData();
-    applyPermissions();
-  } else {
-    showAuth();
-  }
-}
-
-db.channel("realtime-users")
-  .on(
-    "postgres_changes",
-    { event: "*", schema: "public", table: "users" },
-    async () => {
-      await fetchUsers();
-
-      if (currentUser) {
-        await loadCurrentUserProfile(currentUser);
-        applyPermissions();
+          if (userEmailPill) {
+            userEmailPill.textContent =
+              currentUserProfile?.name ||
+              currentUser?.user_metadata?.full_name ||
+              currentUser?.email ||
+              "User";
+          }
+        }
       }
-    }
-  )
-  .subscribe();
+    )
+    .subscribe();
 
   db.channel("realtime-tickets")
     .on(
@@ -1280,233 +1355,34 @@ db.channel("realtime-users")
       { event: "*", schema: "public", table: "tickets" },
       () => {
         fetchTickets();
-      },
+      }
     )
     .subscribe();
 
-function applyPermissions() {
-  if (!currentUserProfile) return;
+  db.channel("realtime-messages")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "ticket_messages" },
+      async () => {
+        if (openedTicketId) {
+          await openTicketDetailPanelData(openedTicketId);
+        }
 
-  addUserBtn.style.display = "";
-  addTicketBtn.style.display = "";
+        await fetchRecentMessages();
 
-  const role = currentUserProfile.role;
+        unreadCount++;
+        const ticketsBtn = document.querySelector('[data-section="tickets"]');
+        if (ticketsBtn && !openedTicketId) {
+          ticketsBtn.textContent = `Tickety (${unreadCount})`;
+        }
+      }
+    )
+    .subscribe();
 
-  if (role !== "Owner") {
-    addUserBtn.style.display = "none";
+  if ("Notification" in window && Notification.permission !== "granted") {
+    Notification.requestPermission();
   }
-
-  if (!["Owner", "Admin"].includes(role)) {
-    addTicketBtn.style.display = "none";
-  }
-}
-
-async function handleForgotPassword() {
-  const email = document.getElementById("loginEmail").value.trim();
-
-  if (!email) {
-    showToast("Nejdřív zadej e-mail.", "error");
-    return;
-  }
-
-  const { error } = await db.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + window.location.pathname,
-  });
-
-  if (error) {
-    console.error(error);
-    showToast("Obnovení hesla selhalo.", "error");
-    return;
-  }
-
-  showToast("Na e-mail byl odeslán odkaz pro obnovení hesla.");
-}
-
-resetPasswordForm?.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const password = newPasswordInput.value.trim();
-  const confirm = confirmPasswordInput.value.trim();
-
-  if (password.length < 6) {
-    showToast("Heslo musí mít alespoň 6 znaků", "error");
-    return;
-  }
-
-  if (password !== confirm) {
-    showToast("Hesla se neshodují", "error");
-    return;
-  }
-
-  const { error } = await db.auth.updateUser({
-    password: password,
-  });
-
-  if (error) {
-    console.error(error);
-    showToast("Změna hesla selhala", "error");
-    return;
-  }
-
-  showToast("Heslo bylo změněno");
-
-  resetPasswordForm.classList.add("hidden");
-  loginForm.classList.remove("hidden");
-
-  window.history.replaceState({}, document.title, window.location.pathname);
-});
-
-forgotPasswordForm?.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const email = forgotEmailInput.value.trim();
-
-  const { error } = await db.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + window.location.pathname,
-  });
-
-  if (error) {
-    console.error(error);
-    showToast("Nepodařilo se odeslat email", "error");
-    return;
-  }
-
-  showToast("Reset link byl odeslán na email");
-
-  forgotPasswordForm.reset();
-  forgotPasswordForm.classList.add("hidden");
-  loginForm.classList.remove("hidden");
-});
-
-backToLoginBtn?.addEventListener("click", () => {
-  forgotPasswordForm.classList.add("hidden");
-  loginForm.classList.remove("hidden");
-});
-
-function switchAuthTab(mode) {
-  const isLogin = mode === "login";
-
-  loginTab?.classList.toggle("active", isLogin);
-  registerTab?.classList.toggle("active", !isLogin);
-
-  loginForm?.classList.add("hidden");
-  registerForm?.classList.add("hidden");
-  forgotPasswordForm?.classList.add("hidden");
-  resetPasswordForm?.classList.add("hidden");
-
-  requestAnimationFrame(() => {
-    if (isLogin) {
-      loginForm?.classList.remove("hidden");
-    } else {
-      registerForm?.classList.remove("hidden");
-    }
-  });
-}
-
-async function handleForgotPasswordRequest(email) {
-  const { error } = await db.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + window.location.pathname,
-  });
-
-  if (error) {
-    console.error(error);
-    showToast("Nepodařilo se odeslat email", "error");
-    return false;
-  }
-
-  showToast("Reset link byl odeslán na email");
-  return true;
-}
-
-forgotPasswordBtn?.addEventListener("click", () => {
-  loginForm?.classList.add("hidden");
-  registerForm?.classList.add("hidden");
-  resetPasswordForm?.classList.add("hidden");
-  forgotPasswordForm?.classList.remove("hidden");
-
-  const loginEmailValue = document.getElementById("loginEmail")?.value?.trim();
-  if (loginEmailValue && forgotEmailInput) {
-    forgotEmailInput.value = loginEmailValue;
-  }
-});
-
-backToLoginBtn?.addEventListener("click", () => {
-  forgotPasswordForm?.classList.add("hidden");
-  resetPasswordForm?.classList.add("hidden");
-  registerForm?.classList.add("hidden");
-  loginForm?.classList.remove("hidden");
-});
-
-forgotPasswordForm?.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const email = forgotEmailInput.value.trim();
-  if (!email) {
-    showToast("Zadej e-mail.", "error");
-    return;
-  }
-
-  const ok = await handleForgotPasswordRequest(email);
-  if (!ok) return;
-
-  forgotPasswordForm.reset();
-  forgotPasswordForm.classList.add("hidden");
-  loginForm.classList.remove("hidden");
-});
-
-resetPasswordForm?.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const password = newPasswordInput.value.trim();
-  const confirm = confirmPasswordInput.value.trim();
-
-  if (password.length < 6) {
-    showToast("Heslo musí mít alespoň 6 znaků", "error");
-    return;
-  }
-
-  if (password !== confirm) {
-    showToast("Hesla se neshodují", "error");
-    return;
-  }
-
-  const { error } = await db.auth.updateUser({ password });
-
-  if (error) {
-    console.error(error);
-    showToast("Změna hesla selhala", "error");
-    return;
-  }
-
-  showToast("Heslo bylo změněno");
-
-  resetPasswordForm.reset();
-  resetPasswordForm.classList.add("hidden");
-  loginForm.classList.remove("hidden");
-  window.history.replaceState({}, document.title, window.location.pathname);
-});
 
   initializeCustomSelects();
   checkSession();
-  githubLoginBtn?.addEventListener("click", handleGithubLogin);
-  userEmailPill?.addEventListener("click", (e) => {
-  e.stopPropagation();
-  toggleProfileDropdown();
-});
-
-openUsersSectionBtn?.addEventListener("click", () => {
-  switchSection("users");
-  closeProfileDropdown();
-});
-
-openSettingsSectionBtn?.addEventListener("click", () => {
-  switchSection("settings");
-  closeProfileDropdown();
-});
-
-document.addEventListener("click", (e) => {
-  if (!profileMenuWrap?.contains(e.target)) {
-    closeProfileDropdown();
-  }
-});
 })();
