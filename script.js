@@ -791,6 +791,14 @@
     openTicketDetailPanel();
   }
 
+  async function initializeAppData() {
+  await Promise.all([
+    fetchUsers(),
+    fetchTickets(),
+    fetchRecentMessages(),
+  ]);
+}
+
   async function seedDemoData() {
     await db.from("ticket_messages").delete().neq("id", 0);
     await db.from("tickets").delete().neq("id", 0);
