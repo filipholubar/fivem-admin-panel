@@ -401,6 +401,7 @@
       const tr = document.createElement("tr");
       tr.innerHTML = `
                 <td>${escapeHtml(user.name)}</td>
+                <td>${escapeHtml(user.email || "—")}</td>
                 <td>${escapeHtml(user.role)}</td>
                 <td><span class="status ${user.status.toLowerCase()}">${escapeHtml(user.status)}</span></td>
                 <td>${escapeHtml(user.last_activity || "—")}</td>
@@ -714,24 +715,28 @@
     const demoUsers = [
       {
         name: "Filip Holubář",
+        email: "filip@example.com",
         role: "Owner",
         status: "Online",
         last_activity: "Dnes",
       },
       {
         name: "Simik",
+        email: "simik@example.com",
         role: "Admin",
         status: "Away",
         last_activity: "Před 2 h",
       },
       {
         name: "Madlička",
+        email: "madlicka@example.com",
         role: "Support",
         status: "Online",
         last_activity: "Před 18 min",
       },
       {
         name: "Test User",
+        email: "user@example.com",
         role: "Member",
         status: "Offline",
         last_activity: "Včera",
