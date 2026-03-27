@@ -13,6 +13,9 @@
   let currentUser = null;
   let currentUserProfile = null;
   let unreadCount = 0;
+  let typingTimeout = null;
+  let typingHideTimeout = null;
+  let typingChannel = null;
 
   const authScreen = document.getElementById("authScreen");
   const appShell = document.getElementById("appShell");
@@ -102,6 +105,8 @@
   const forgotEmailInput = document.getElementById("forgotEmail");
   const newPasswordInput = document.getElementById("newPassword");
   const confirmPasswordInput = document.getElementById("confirmPassword");
+  const typingIndicator = document.getElementById("typingIndicator");
+  const typingIndicatorText = document.getElementById("typingIndicatorText");
 
   const addUserBtn = document.getElementById("addUserBtn");
   const addTicketBtn = document.getElementById("addTicketBtn");
@@ -517,10 +522,9 @@
         (user.last_activity || "").toLowerCase().includes(term);
 
       const matchesStatus = filter === "all" ? true : user.status === filter;
-      return matchesSearch && matchesStatus;
-
       const matchesRole = role === "all" ? true : user.role === role;
-      return matchesSearch && matchesStatus && matchesRole;
+
+      return matchesSearch && matchesStatus;
     });
   }
 
@@ -787,7 +791,7 @@
   async function updateTicketStatus(id, status) {
     const { error } = await db
       .from("tickets")
-      .update({ status, update_at: new Date().toISOString() })
+      .update({ status, updated_at: new Date().toISOString() })
       .eq("id", id);
 
     if (error) {
@@ -857,54 +861,54 @@
   }
 
   function renderTicketMessages(messages) {
-    if (!ticketMessages) return;
+  if (!ticketMessages) return;
 
-    ticketMessages.innerHTML = "";
+  ticketMessages.innerHTML = "";
 
-    if (!messages.length) {
-      ticketMessages.innerHTML = `
-      <div class="ticket-empty">
-        <p>Žádné zprávy v ticketu.</p>
+  if (!messages.length) {
+    ticketMessages.innerHTML = `
+      <div class="ticket-message">
+        <p>V ticketu zatím nejsou žádné zprávy.</p>
       </div>
     `;
-      return;
-    }
-
-    messages.forEach((msg) => {
-      const isMe =
-        msg.author === currentUserProfile?.name ||
-        msg.author === currentUser?.email;
-
-      const initials = msg.author
-        ?.split(" ")
-        .map((w) => w[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase();
-
-      const item = document.createElement("div");
-      item.className = `chat-message ${isMe ? "me" : "other"}`;
-
-      item.innerHTML = `
-      <div class="chat-avatar">${initials}</div>
-
-      <div class="chat-content">
-        <div class="chat-header">
-          <span class="chat-author">${escapeHtml(msg.author)}</span>
-          <span class="chat-time">${escapeHtml(getFormattedDate(msg.created_at))}</span>
-        </div>
-
-        <div class="chat-bubble">
-          ${escapeHtml(msg.message)}
-        </div>
-      </div>
-    `;
-
-      ticketMessages.appendChild(item);
-    });
-
-    ticketMessages.scrollTop = ticketMessages.scrollHeight;
+    return;
   }
+
+  messages.forEach((msg) => {
+    const isMe =
+      msg.author === currentUserProfile?.name ||
+      msg.author === currentUser?.email;
+
+    const item = document.createElement("div");
+    item.className = `ticket-message ${isMe ? "me" : ""}`;
+
+    item.innerHTML = `
+      <div class="msg-header">
+        <strong>${escapeHtml(msg.author)}</strong>
+        <span>${escapeHtml(getFormattedDate(msg.created_at))}</span>
+      </div>
+
+      <div class="msg-content">
+        ${escapeHtml(msg.message)}
+      </div>
+
+      <div class="msg-actions">
+        ${
+          isMe
+            ? `
+          <button data-edit-msg="${msg.id}">Edit</button>
+          <button data-delete-msg="${msg.id}">Delete</button>
+        `
+            : ""
+        }
+      </div>
+    `;
+
+    ticketMessages.appendChild(item);
+  });
+
+  ticketMessages.scrollTop = ticketMessages.scrollHeight;
+}
 
   async function openTicketDetailPanelData(id) {
     const ticket = tickets.find((t) => t.id === id);
@@ -924,8 +928,8 @@
       ticketDetailAuthor.textContent = ticket.owner_name || "—";
     }
 
-    if (ticketDetailAssigned) {
-      ticketDetailAssigned.textContent = ticket.assigned_to || "Nepřiřazeno";
+    if (ticketDetailAssignedInput) {
+      ticketDetailAssignedInput.value = ticket.assigned_to || "";
     }
 
     if (ticketDetailPriority) {
@@ -1172,26 +1176,81 @@
     }
   }
 
-  userForm?.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  function showTypingIndicator(name) {
+  if (!typingIndicator || !typingIndicatorText) return;
+  typingIndicatorText.textContent = `${name} píše...`;
+  typingIndicator.classList.remove("hidden");
+}
 
-    const submitButton = userForm.querySelector('button[type="submit"]');
-    setLoadingButton(submitButton, true);
+function hideTypingIndicator() {
+  typingIndicator?.classList.add("hidden");
+}
 
-    const payload = {
-      name: userNameInput.value.trim(),
-      role: userRoleInput.value,
-      status: userStatusInput.value,
-      last_activity: userActivityInput.value.trim(),
-    };
+function getCurrentAuthorName() {
+  return (
+    currentUserProfile?.name ||
+    currentUser?.user_metadata?.full_name ||
+    currentUser?.email ||
+    "User"
+  );
+}
 
-    const ok = editingUserId
-      ? await updateUser(editingUserId, payload)
-      : await createUser(payload);
+function setupTypingChannel() {
+  if (typingChannel) return;
 
-    setLoadingButton(submitButton, false);
-    if (ok) closeUserModalFn();
+  typingChannel = db.channel("typing-ticket-room");
+
+  typingChannel
+    .on("broadcast", { event: "typing" }, ({ payload }) => {
+      if (!openedTicketId) return;
+      if (!payload) return;
+      if (payload.ticketId !== openedTicketId) return;
+      if (payload.author === getCurrentAuthorName()) return;
+
+      showTypingIndicator(payload.author);
+
+      clearTimeout(typingHideTimeout);
+      typingHideTimeout = setTimeout(() => {
+        hideTypingIndicator();
+      }, 1600);
+    })
+    .subscribe();
+}
+
+function sendTypingEvent() {
+  if (!typingChannel || !openedTicketId) return;
+
+  typingChannel.send({
+    type: "broadcast",
+    event: "typing",
+    payload: {
+      ticketId: openedTicketId,
+      author: getCurrentAuthorName(),
+      at: Date.now(),
+    },
   });
+}
+
+userForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const submitButton = userForm.querySelector('button[type="submit"]');
+  setLoadingButton(submitButton, true);
+
+  const payload = {
+    name: userNameInput.value.trim(),
+    role: userRoleInput.value,
+    status: userStatusInput.value,
+    last_activity: userActivityInput.value.trim(),
+  };
+
+  const ok = editingUserId
+    ? await updateUser(editingUserId, payload)
+    : await createUser(payload);
+
+  setLoadingButton(submitButton, false);
+  if (ok) closeUserModalFn();
+});
 
   ticketForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1255,6 +1314,7 @@
     if (ok) {
       ticketReplyForm.reset();
       await openTicketDetailPanelData(openedTicketId);
+      hideTypingIndicator();
     }
   });
 
@@ -1441,6 +1501,33 @@
     const editTicketBtn = e.target.closest("[data-edit-ticket]");
     const deleteTicketBtn = e.target.closest("[data-delete-ticket]");
     const openTicketBtn = e.target.closest("[data-open-ticket]");
+    const editMsgBtn = e.target.closest("[data-edit-msg]");
+const deleteMsgBtn = e.target.closest("[data-delete-msg]");
+
+if (editMsgBtn) {
+  const id = Number(editMsgBtn.dataset.editMsg);
+
+  const newText = prompt("Upravit zprávu:");
+  if (!newText) return;
+
+  await db
+    .from("ticket_messages")
+    .update({ message: newText })
+    .eq("id", id);
+
+  await openTicketDetailPanelData(openedTicketId);
+}
+
+if (deleteMsgBtn) {
+  const id = Number(deleteMsgBtn.dataset.deleteMsg);
+
+  const ok = confirm("Smazat zprávu?");
+  if (!ok) return;
+
+  await db.from("ticket_messages").delete().eq("id", id);
+
+  await openTicketDetailPanelData(openedTicketId);
+}
 
     if (editUserBtn) {
       const id = Number(editUserBtn.dataset.editUser);
@@ -1515,6 +1602,25 @@
     });
   });
 
+  ticketReplyMessage?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    ticketReplyForm.requestSubmit();
+  }
+});
+
+
+ticketReplyMessage?.addEventListener("input", () => {
+  if (!openedTicketId) return;
+
+  clearTimeout(typingTimeout);
+
+  sendTypingEvent();
+
+  typingTimeout = setTimeout(() => {
+  }, 700);
+});
+
   db.channel("realtime-users")
     .on(
       "postgres_changes",
@@ -1574,6 +1680,7 @@
   }
 
   initializeCustomSelects();
+  setupTypingChannel();
   checkSession();
 
   ticketSearch?.addEventListener("input", renderTickets);
